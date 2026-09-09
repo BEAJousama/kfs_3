@@ -1,0 +1,1439 @@
+<title>Kernel From Scratch Field Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#f3f4f2;
+  --paper:#fbfbf9;
+  --panel:#ffffff;
+  --ink:#1b2127;
+  --ink-soft:#4a545d;
+  --ink-faint:#78838c;
+  --rule:#d9dcd7;
+  --rule-strong:#c4c8c1;
+  --accent:#2f6f9f;
+  --accent-soft:#e5eef4;
+  --amber:#9a6212;
+  --amber-soft:#f6ecdb;
+  --danger:#b23b2c;
+  --danger-soft:#f6e2de;
+  --teal:#2b7c72;
+  --code-bg:#f3f2ee;
+  --code-ink:#2a2f27;
+  --shadow:0 1px 2px rgba(24,28,20,.06),0 8px 24px -12px rgba(24,28,20,.18);
+  --measure:68ch;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0f1317;
+    --paper:#141a1f;
+    --panel:#1a2128;
+    --ink:#d9dee3;
+    --ink-soft:#9aa5ad;
+    --ink-faint:#6b767e;
+    --rule:#262e35;
+    --rule-strong:#333c44;
+    --accent:#6fb2dd;
+    --accent-soft:#18262f;
+    --amber:#d69a52;
+    --amber-soft:#241d12;
+    --danger:#e0705f;
+    --danger-soft:#2a1712;
+    --teal:#5fb3a6;
+    --code-bg:#0c1114;
+    --code-ink:#c9d1cb;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0f1317;
+  --paper:#141a1f;
+  --panel:#1a2128;
+  --ink:#d9dee3;
+  --ink-soft:#9aa5ad;
+  --ink-faint:#6b767e;
+  --rule:#262e35;
+  --rule-strong:#333c44;
+  --accent:#6fb2dd;
+  --accent-soft:#18262f;
+  --amber:#d69a52;
+  --amber-soft:#241d12;
+  --danger:#e0705f;
+  --danger-soft:#2a1712;
+  --teal:#5fb3a6;
+  --code-bg:#0c1114;
+  --code-ink:#c9d1cb;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.55);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+  font-size:17px;
+  line-height:1.68;
+  -webkit-font-smoothing:antialiased;
+}
+.layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  max-width:1180px;
+  margin:0 auto;
+}
+@media (min-width:1000px){
+  .layout{grid-template-columns:266px minmax(0,1fr);gap:0}
+}
+
+/* ---- sidebar ---- */
+.sidebar{
+  border-right:1px solid var(--rule);
+  background:var(--paper);
+}
+@media (min-width:1000px){
+  .sidebar{position:sticky;top:0;height:100vh;overflow-y:auto}
+}
+.sidebar-inner{padding:30px 22px 60px}
+.brand{
+  font-family:"IBM Plex Sans",system-ui,sans-serif;
+  font-weight:600;
+  font-size:15px;
+  letter-spacing:.01em;
+  line-height:1.3;
+  margin:0 0 4px;
+}
+.brand span{display:block;color:var(--ink-faint);font-weight:500;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;margin-top:6px}
+.toc{margin:26px 0 0;padding:0;list-style:none;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13.5px}
+.toc li{margin:0}
+.toc a{
+  display:flex;
+  gap:10px;
+  padding:5px 8px;
+  border-radius:5px;
+  color:var(--ink-soft);
+  text-decoration:none;
+  line-height:1.35;
+}
+.toc a:hover{background:var(--accent-soft);color:var(--ink)}
+.toc a .n{color:var(--ink-faint);font-variant-numeric:tabular-nums;font-weight:500;flex:none;width:1.6em}
+.toc a.active{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.toc .grp{margin-top:16px;padding:0 8px 4px;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* ---- main ---- */
+main{padding:0}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px}
+.hero{
+  padding:78px 0 44px;
+  border-bottom:1px solid var(--rule);
+}
+.hero .kick{
+  font-family:"IBM Plex Sans",sans-serif;
+  font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+  margin:0 0 18px;font-weight:600;
+}
+h1{
+  font-family:"IBM Plex Sans",sans-serif;
+  font-weight:700;
+  font-size:clamp(2rem,5vw,2.9rem);
+  line-height:1.08;
+  letter-spacing:-.02em;
+  text-wrap:balance;
+  margin:0 0 20px;
+}
+.hero p{font-size:1.12rem;color:var(--ink-soft);margin:0 0 14px;max-width:60ch}
+.hero .meta{
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-faint);
+  margin-top:26px;display:flex;flex-wrap:wrap;gap:6px 20px;
+}
+
+section.part{padding:56px 0;border-bottom:1px solid var(--rule)}
+.part-head{display:flex;align-items:baseline;gap:16px;margin:0 0 8px}
+.part-num{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:13px;font-weight:500;color:var(--accent);
+  border:1px solid var(--rule-strong);border-radius:4px;
+  padding:3px 8px;flex:none;
+}
+h2{
+  font-family:"IBM Plex Sans",sans-serif;
+  font-weight:600;font-size:1.72rem;line-height:1.15;letter-spacing:-.015em;
+  margin:0;text-wrap:balance;
+}
+.standfirst{font-size:1.06rem;color:var(--ink-soft);margin:14px 0 26px;max-width:62ch}
+h3{
+  font-family:"IBM Plex Sans",sans-serif;
+  font-weight:600;font-size:1.2rem;letter-spacing:-.01em;
+  margin:34px 0 10px;
+}
+h4{
+  font-family:"IBM Plex Sans",sans-serif;
+  font-weight:600;font-size:1rem;margin:22px 0 6px;color:var(--ink);
+}
+p{margin:0 0 16px;max-width:var(--measure)}
+ul,ol{max-width:var(--measure);margin:0 0 16px;padding-left:1.3em}
+li{margin:0 0 7px}
+strong{font-weight:600}
+em{font-style:italic}
+a{color:var(--accent);text-decoration-thickness:1px;text-underline-offset:2px}
+hr{border:0;border-top:1px solid var(--rule);margin:30px 0}
+
+code{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  font-size:.86em;
+  background:var(--code-bg);
+  color:var(--code-ink);
+  padding:.12em .38em;
+  border-radius:4px;
+}
+pre{
+  font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  background:var(--code-bg);
+  color:var(--code-ink);
+  font-size:13px;
+  line-height:1.62;
+  padding:16px 18px;
+  border-radius:8px;
+  border:1px solid var(--rule);
+  overflow-x:auto;
+  margin:0 0 20px;
+  max-width:100%;
+}
+pre code{background:none;padding:0;font-size:inherit;color:inherit}
+.cmt{color:var(--ink-faint)}
+.kw{color:var(--accent);font-weight:500}
+.str{color:var(--teal)}
+
+figure{margin:26px 0;max-width:100%}
+figure svg{display:block;width:100%;height:auto;background:var(--panel);border:1px solid var(--rule);border-radius:8px}
+figcaption{font-family:"IBM Plex Sans",sans-serif;font-size:12.5px;color:var(--ink-faint);margin-top:8px;text-align:center}
+.svg-ink{fill:var(--ink)}
+.svg-soft{fill:var(--ink-soft)}
+.svg-faint{fill:var(--ink-faint)}
+.svg-line{stroke:var(--ink-soft)}
+.svg-rule{stroke:var(--rule-strong)}
+.svg-accent{fill:var(--accent)}
+.svg-accent-s{stroke:var(--accent)}
+.svg-amber{fill:var(--amber)}
+.svg-danger{fill:var(--danger)}
+.svg-panel{fill:var(--panel)}
+.mono-svg{font-family:"IBM Plex Mono",monospace;font-size:11px}
+.sans-svg{font-family:"IBM Plex Sans",sans-serif;font-size:11px}
+
+.tablewrap{overflow-x:auto;margin:0 0 22px;border:1px solid var(--rule);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-family:"IBM Plex Sans",sans-serif;font-size:13.5px}
+th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{background:var(--code-bg);font-weight:600;color:var(--ink);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td code{font-size:.92em}
+.bits td:first-child{font-family:"IBM Plex Mono",monospace;white-space:nowrap;color:var(--accent)}
+
+.callout{
+  border:1px solid var(--rule-strong);
+  border-left-width:3px;
+  border-radius:7px;
+  padding:15px 18px;
+  margin:22px 0;
+  background:var(--panel);
+  font-size:.97rem;
+}
+.callout p{margin:0 0 10px}
+.callout p:last-child{margin:0}
+.callout .tag{
+  font-family:"IBM Plex Sans",sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;display:block;margin-bottom:7px;
+}
+.callout.note{border-left-color:var(--accent)}
+.callout.note .tag{color:var(--accent)}
+.callout.gotcha{border-left-color:var(--danger);background:var(--danger-soft)}
+.callout.gotcha .tag{color:var(--danger)}
+.callout.interview{border-left-color:var(--amber);background:var(--amber-soft)}
+.callout.interview .tag{color:var(--amber)}
+.callout.code-ref{border-left-color:var(--teal)}
+.callout.code-ref .tag{color:var(--teal)}
+.callout.code-ref code{font-size:.85em}
+
+.qa{margin:20px 0}
+.qa summary{
+  font-family:"IBM Plex Sans",sans-serif;font-weight:600;font-size:1rem;
+  cursor:pointer;padding:12px 14px;border:1px solid var(--rule);border-radius:7px;
+  background:var(--panel);list-style:none;display:flex;gap:10px;align-items:baseline;
+}
+.qa summary::-webkit-details-marker{display:none}
+.qa summary::before{content:"Q";font-family:"IBM Plex Mono",monospace;color:var(--amber);font-weight:600;flex:none}
+.qa summary:hover{border-color:var(--rule-strong)}
+.qa[open] summary{border-bottom-left-radius:0;border-bottom-right-radius:0;border-color:var(--rule-strong)}
+.qa .a{border:1px solid var(--rule-strong);border-top:0;border-radius:0 0 7px 7px;padding:14px 16px 2px;background:var(--panel)}
+.qa .a p:first-child{margin-top:0}
+
+.faketerm{
+  background:#0c1013;color:#cdd6cf;border:1px solid var(--rule-strong);border-radius:8px;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.55;
+  padding:14px 16px;overflow-x:auto;margin:0 0 20px;
+}
+.faketerm .g{color:#84c98b}
+.faketerm .c{color:#5aa9d6}
+.faketerm .r{color:#e07a68}
+.faketerm .d{color:#6b767e}
+
+.footer{padding:50px 0 90px;color:var(--ink-faint);font-family:"IBM Plex Sans",sans-serif;font-size:13px}
+.footer a{color:var(--accent)}
+
+.backlink{
+  position:fixed;right:16px;bottom:16px;
+  font-family:"IBM Plex Sans",sans-serif;font-size:12px;
+  background:var(--panel);border:1px solid var(--rule-strong);border-radius:20px;
+  padding:8px 14px;color:var(--ink-soft);text-decoration:none;box-shadow:var(--shadow);
+}
+.backlink:hover{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
+.skip{position:absolute;left:-999px}
+.skip:focus{left:8px;top:8px;background:var(--panel);padding:8px 12px;border:1px solid var(--accent);border-radius:6px;z-index:99}
+</style>
+
+<a href="#top" class="skip">Skip to content</a>
+<div class="layout" id="top">
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <p class="brand">Kernel From Scratch<span>Field Manual · KFS 1–3</span></p>
+      <nav aria-label="Contents">
+        <ul class="toc" id="toc">
+          <li class="grp">Groundwork</li>
+          <li><a href="#p0"><span class="n">00</span>Three kernels, one machine</a></li>
+          <li><a href="#p1"><span class="n">01</span>The cross-compiler &amp; freestanding C</a></li>
+          <li><a href="#p2"><span class="n">02</span>Power-on to <code>_start</code></a></li>
+          <li><a href="#p3"><span class="n">03</span>The linker script</a></li>
+          <li><a href="#p4"><span class="n">04</span>Just enough x86</a></li>
+          <li><a href="#p5"><span class="n">05</span>The stack</a></li>
+          <li class="grp">KFS_1 — screen &amp; boot</li>
+          <li><a href="#p6"><span class="n">06</span>VGA text mode &amp; <code>printf</code></a></li>
+          <li class="grp">KFS_2 — the CPU tables</li>
+          <li><a href="#p7"><span class="n">07</span>The GDT &amp; segmentation</a></li>
+          <li><a href="#p8"><span class="n">08</span>The IDT, exceptions &amp; ISRs</a></li>
+          <li><a href="#p9"><span class="n">09</span>PIC, IRQs, PIT &amp; keyboard</a></li>
+          <li class="grp">KFS_3 — memory</li>
+          <li><a href="#p10"><span class="n">10</span>Paging</a></li>
+          <li><a href="#p11"><span class="n">11</span>Physical memory management</a></li>
+          <li><a href="#p12"><span class="n">12</span>The kernel heap</a></li>
+          <li><a href="#p13"><span class="n">13</span>The virtual heap</a></li>
+          <li><a href="#p14"><span class="n">14</span>Kernel panics</a></li>
+          <li class="grp">Interview</li>
+          <li><a href="#p15"><span class="n">15</span>Question bank</a></li>
+          <li><a href="#p16"><span class="n">16</span>Quick reference</a></li>
+        </ul>
+      </nav>
+    </div>
+  </aside>
+
+  <main>
+    <div class="wrap">
+      <header class="hero">
+        <p class="kick">A study companion for the 42 Kernel From Scratch series</p>
+        <h1>Everything the three kernels touch, explained</h1>
+        <p>This manual walks the full path from an empty compiler to a paging kernel with its own allocator: the boot handshake, protected mode, the GDT and IDT, the PIC and the keyboard, then virtual memory and two heaps. Every concept is tied back to the code in <code>kfs_2</code> and <code>kfs_3</code>.</p>
+        <p>It is written to be read in order once, then raided before an interview. Each part ends with the questions an interviewer actually asks about it.</p>
+        <div class="meta">
+          <span>target: i686-elf</span><span>arch: x86 (32-bit, protected mode)</span><span>boot: Multiboot 1 + GRUB</span>
+        </div>
+      </header>
+
+      <section class="part" id="p0">
+        <div class="part-head"><span class="part-num">00</span><h2>Three kernels, one machine</h2></div>
+        <p class="standfirst">What each project adds, and the mental model that ties them together.</p>
+
+        <p>The series builds one 32-bit x86 kernel in three passes. Each pass is a self-contained subject, but the later ones start from the earlier code.</p>
+
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Project</th><th>Theme</th><th>What you end up with</th></tr></thead>
+            <tbody>
+              <tr><td><strong>KFS_1</strong></td><td>Boot &amp; screen</td><td>A Multiboot kernel GRUB can load, printing to the VGA text buffer. A tiny <code>printf</code>, scrolling, keyboard echo.</td></tr>
+              <tr><td><strong>KFS_2</strong></td><td>The CPU's tables</td><td>A <strong>GDT</strong> (segmentation), an <strong>IDT</strong> with 32 exception handlers, the <strong>PIC</strong> remapped, IRQ handlers, a real keyboard driver, a debug shell, kernel panics.</td></tr>
+              <tr><td><strong>KFS_3</strong></td><td>Memory</td><td><strong>Paging</strong> turned on, a physical frame allocator, and two heaps: <code>kmalloc</code> (physically contiguous) and <code>vmalloc</code> (virtually contiguous).</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>The one model to hold in your head</h3>
+        <p>A CPU running your kernel is a state machine driven by three things: the <strong>instruction pointer</strong> (what runs next), a set of <strong>tables in RAM that the CPU consults on every instruction</strong> (the GDT for segment meaning, the page tables for address meaning, the IDT when something interrupts), and <strong>control registers</strong> that say which mode those lookups happen in. Almost everything in KFS_2 and KFS_3 is "fill in a table, then point a register at it, then execute a magic instruction that makes the CPU start using it."</p>
+
+        <ul>
+          <li><code>lgdt</code> + a far jump → the CPU now interprets segment selectors through <em>your</em> GDT.</li>
+          <li><code>lidt</code> → interrupts and faults now vector through <em>your</em> IDT.</li>
+          <li><code>mov cr3</code> + set <code>CR0.PG</code> → every address is now translated through <em>your</em> page tables.</li>
+        </ul>
+
+        <div class="callout note">
+          <span class="tag">Note</span>
+          <p>"Bare metal" here does not mean the CPU starts blank. GRUB has already switched it to 32-bit protected mode with a throwaway GDT and paging off before your <code>_start</code> runs. Your job in KFS_2/3 is to replace those temporary structures with ones you control.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p1">
+        <div class="part-head"><span class="part-num">01</span><h2>The cross-compiler &amp; freestanding C</h2></div>
+        <p class="standfirst">Why you cannot use the <code>gcc</code> already on your machine, and what every compiler flag in the Makefile is buying you.</p>
+
+        <h3>What "cross" means</h3>
+        <p>A compiler is described by three platforms: the machine it <em>runs on</em> (host), the machine it <em>builds for</em> (target), and — for a compiler that builds compilers — the machine that <em>built it</em> (build). Your distro's <code>gcc</code> is a <em>native</em> compiler: host = target = your Linux box. It assumes the things your Linux box provides — a C library, a dynamic loader, an executable format with an OS behind it, a specific default GDT layout, stack protection hooks, position-independent code for ASLR.</p>
+        <p>Your kernel has <em>none</em> of that. It needs a <strong>cross-compiler</strong> whose target is a bare ELF x86 machine with no operating system: the triple <code>i686-elf</code>.</p>
+
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Triple part</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>i686</td><td>The CPU: 32-bit x86, Pentium Pro era instruction set. (<code>i386</code> works too; <code>i686</code> just lets the compiler assume a few more instructions.)</td></tr>
+              <tr><td><em>(no vendor)</em></td><td>No "pc", no "linux". Nothing is assumed about the platform.</td></tr>
+              <tr><td>elf</td><td>Output format is plain ELF with no OS ABI. No <code>libc</code>, no syscalls, no dynamic linker.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Building it (the <code>install_gcc_cross.sh</code> / <code>scripts/provision.sh</code> script) is two steps:</p>
+        <ol>
+          <li><strong>binutils</strong> configured with <code>--target=i686-elf</code> — this gives you <code>i686-elf-as</code> (assembler), <code>i686-elf-ld</code> (linker), <code>i686-elf-objdump</code>, etc. that emit and understand 32-bit ELF regardless of your host.</li>
+          <li><strong>gcc</strong> configured the same way with <code>--without-headers</code> (there is no libc to find headers for) and <code>--enable-languages=c,c++</code>. You build <code>all-gcc</code> and <code>all-target-libgcc</code> — the compiler itself plus <code>libgcc</code>.</li>
+        </ol>
+
+        <h3>Why <code>libgcc</code> is the one library you <em>do</em> link</h3>
+        <p>The 32-bit x86 CPU has no instruction for 64-bit division, 64-bit modulo, or some shifts. When your C code writes <code>uint64_t a / b</code>, gcc emits a <code>call __udivdi3</code> — a helper function that lives in <code>libgcc.a</code>. That is why the link line ends with <code>-lgcc</code>. It is compiler runtime support, not an operating-system library, so it is allowed.</p>
+
+        <h3>Every flag in the Makefile</h3>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Flag</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>-ffreestanding</td><td>Tells gcc this is a <em>freestanding</em> environment: <code>main</code> is not special, and only a handful of headers (<code>stdint.h</code>, <code>stddef.h</code>, <code>stdbool.h</code>, <code>stdarg.h</code>) are guaranteed. The opposite is <em>hosted</em> (a normal program with a C library).</td></tr>
+              <tr><td>-nostdlib</td><td>Don't link the standard library or the C runtime startup files (<code>crt0</code>) at link time. Your <code>_start</code> is the entry point.</td></tr>
+              <tr><td>-nodefaultlibs</td><td>Don't auto-link any default libraries (belt and braces with <code>-nostdlib</code>).</td></tr>
+              <tr><td>-fno-builtin</td><td>Don't assume libc semantics for functions named <code>memcpy</code>, <code>strlen</code>, … so gcc won't, say, replace your loop with a call to a <code>memset</code> that doesn't exist. (You still provide your own in <code>helpers.c</code>; gcc <em>may</em> still emit calls to <code>memcpy</code>/<code>memset</code> for struct copies, which is why you implement those.)</td></tr>
+              <tr><td>-fno-stack-protector</td><td>The stack-smashing guard calls <code>__stack_chk_fail</code> and reads a canary from a libc-managed global. Neither exists.</td></tr>
+              <tr><td>-fno-pic</td><td>Generate position-<em>dependent</em> code. The kernel is linked to run at one known address (2&nbsp;MiB); it never gets relocated, so the GOT/PLT indirection of PIC is pure overhead — and references <code>_GLOBAL_OFFSET_TABLE_</code>, which nothing defines.</td></tr>
+              <tr><td>-m32 <span class="cmt">(host-gcc fallback)</span></td><td>If you build with your host <code>gcc</code> instead of the cross one, this forces 32-bit code generation. It works for C, but you're trusting the host's headers and defaults — the cross-compiler is the clean answer.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout gotcha">
+          <span class="tag">Gotcha</span>
+          <p>The subject lets you use the host's <code>ld</code> <em>binary</em> but forbids the host's default linker <em>script</em>. The default script links a normal Linux executable — right entry symbol, wrong load address, expects an interpreter. You must supply your own (<a href="#p3">Part 03</a>).</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"Why can't you just use <code>gcc</code> on your laptop to build a kernel?"</strong> — Because a native gcc bakes in host assumptions: it links against glibc and the C runtime, targets your OS's ELF ABI, emits PIC for ASLR, and inserts stack-protector calls into libc-managed globals. A freestanding kernel has no libc, no loader, and one fixed load address. A cross-compiler configured for <code>i686-elf</code> removes every one of those assumptions; the flags (<code>-ffreestanding -nostdlib -fno-builtin -fno-stack-protector -fno-pic</code>) remove the rest.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p2">
+        <div class="part-head"><span class="part-num">02</span><h2>Power-on to <code>_start</code></h2></div>
+        <p class="standfirst">The BIOS, the Multiboot contract, what GRUB hands you, and the twenty lines of assembly that bridge into C.</p>
+
+        <figure>
+          <svg viewBox="0 0 700 130" role="img" aria-labelledby="bootflow-t">
+            <title id="bootflow-t">Boot sequence from power-on to kernel_main</title>
+            <g class="sans-svg">
+              <g><rect class="svg-panel svg-rule" x="6" y="40" width="96" height="46" rx="6" stroke-width="1"/><text class="svg-ink" x="54" y="60" text-anchor="middle">Power on</text><text class="svg-faint" x="54" y="75" text-anchor="middle">CPU in real mode</text></g>
+              <g><rect class="svg-panel svg-rule" x="122" y="40" width="110" height="46" rx="6" stroke-width="1"/><text class="svg-ink" x="177" y="60" text-anchor="middle">BIOS / POST</text><text class="svg-faint" x="177" y="75" text-anchor="middle">find boot device</text></g>
+              <g><rect class="svg-panel svg-rule" x="252" y="40" width="120" height="46" rx="6" stroke-width="1"/><text class="svg-ink" x="312" y="60" text-anchor="middle">GRUB</text><text class="svg-faint" x="312" y="75" text-anchor="middle">read ISO, load ELF</text></g>
+              <g><rect class="svg-panel svg-accent-s" x="392" y="40" width="150" height="46" rx="6" stroke-width="1.5"/><text class="svg-ink" x="467" y="60" text-anchor="middle">GRUB → protected mode</text><text class="svg-faint" x="467" y="75" text-anchor="middle">jump to _start, EAX/EBX set</text></g>
+              <g><rect class="svg-panel svg-rule" x="562" y="40" width="132" height="46" rx="6" stroke-width="1"/><text class="svg-accent" x="628" y="60" text-anchor="middle">_start (boot.s)</text><text class="svg-faint" x="628" y="75" text-anchor="middle">set esp, call C</text></g>
+              <path class="svg-line" d="M102 63h18M232 63h18M372 63h18M542 63h18" stroke-width="1.2" marker-end="url(#ar)"/>
+            </g>
+            <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path class="svg-soft" d="M0 0l7 3.5L0 7z"/></marker></defs>
+          </svg>
+          <figcaption>Everything left of "_start" happens before a single line of your code runs.</figcaption>
+        </figure>
+
+        <h3>Real mode, protected mode, and why the jump matters</h3>
+        <p>An x86 CPU powers on in <strong>real mode</strong>: 16-bit registers, 1&nbsp;MiB of addressable memory, addresses formed as <code>segment&nbsp;×&nbsp;16 + offset</code>, no memory protection. This is 1978 compatibility that every x86 chip still boots into.</p>
+        <p><strong>Protected mode</strong> is the 32-bit world: 4&nbsp;GiB address space, privilege rings, segmentation with real access checks, and (optionally) paging. Switching modes means setting bit 0 of <code>CR0</code> and loading a GDT — GRUB does this for you. When your kernel later reloads <code>CS</code> with a far jump in <code>gdt_flush</code>, it is finishing that handshake with segments <em>it</em> defined.</p>
+
+        <div class="callout note">
+          <span class="tag">Note — the A20 line</span>
+          <p>On the original 8086, address 0x100000 wrapped to 0. Later CPUs added a gate (the "A20 line") that must be enabled to address memory above 1&nbsp;MiB without wrap. It is a classic boot-code chore — GRUB handles it before you get control, which is one more reason to boot via a Multiboot loader rather than write a 16-bit bootsector.</p>
+        </div>
+
+        <h3>The Multiboot contract</h3>
+        <p>Rather than write raw boot sectors, the kernel declares itself <strong>Multiboot 1</strong>–compliant so any compliant loader (GRUB) will load it. The contract is a header that must appear in the <strong>first 8&nbsp;KiB</strong> of the kernel file, 4-byte aligned:</p>
+        <pre><code><span class="cmt">/* boot.s */</span>
+.set MAGIC,    0x1BADB002        <span class="cmt">; lets the loader find the header</span>
+.set FLAGS,    (1&lt;&lt;0) | (1&lt;&lt;1)   <span class="cmt">; bit0 = align modules on pages</span>
+                                <span class="cmt">; bit1 = give me a memory map</span>
+.set CHECKSUM, -(MAGIC + FLAGS)  <span class="cmt">; MAGIC+FLAGS+CHECKSUM must == 0</span>
+
+.section .multiboot
+.align 4
+.long MAGIC
+.long FLAGS
+.long CHECKSUM</code></pre>
+        <p>The linker script forces <code>.multiboot</code> to the very front of <code>.text</code> so it lands in that first 8&nbsp;KiB.</p>
+
+        <h3>What GRUB hands you</h3>
+        <p>When GRUB jumps to your entry point, it guarantees a specific machine state:</p>
+        <ul>
+          <li>Protected mode, paging <strong>off</strong>, interrupts <strong>off</strong>.</li>
+          <li>A valid but <em>temporary</em> GDT (you must load your own soon and not rely on GRUB's).</li>
+          <li><code>EAX</code> = <code>0x2BADB002</code> — proof you were booted by a Multiboot loader.</li>
+          <li><code>EBX</code> = physical address of a <strong>multiboot_info</strong> struct: total memory, a memory map, boot device, command line, module list.</li>
+          <li><code>ESP</code> is <em>not</em> guaranteed — you must set up your own stack immediately.</li>
+        </ul>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>kfs_3/src/boot.s</code> pushes <code>EBX</code> then <code>EAX</code> before <code>call kernel_main</code>, so C receives them as <code>kernel_main(uint32_t magic, multiboot_info_t *mbi)</code>. KFS_3 reads <code>mbi-&gt;mem_upper</code> (KiB of RAM above 1&nbsp;MiB) to size the physical frame allocator. <code>include/multiboot.h</code> has the full struct.</p>
+        </div>
+
+        <h3>The bridge: <code>_start</code></h3>
+        <pre><code><span class="cmt">/* .bss: reserve a 16 KiB stack */</span>
+.section .bss
+.align 16
+stack_bottom: .skip 16384
+stack_top:
+
+.section .text
+.global _start
+_start:
+    mov $stack_top, %esp   <span class="cmt">; stack grows DOWN from stack_top</span>
+    push %ebx              <span class="cmt">; multiboot info pointer</span>
+    push %eax              <span class="cmt">; multiboot magic</span>
+    call kernel_main       <span class="cmt">; into C, never expected to return</span>
+    cli
+1:  hlt
+    jmp 1b                 <span class="cmt">; if it does return, halt forever</span></code></pre>
+        <p>That is the entire assembly-to-C bridge. Note the stack lives in <code>.bss</code> (zero-initialised, takes no space in the file) and <code>esp</code> starts at the <em>top</em> because the stack grows toward lower addresses.</p>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"Walk me through what happens between pressing the power button and your <code>main</code> running."</strong> — CPU starts in 16-bit real mode executing firmware. BIOS runs POST, picks a boot device, loads the bootloader. GRUB reads the filesystem, finds the Multiboot header in the kernel, loads the ELF segments to their link addresses, enables A20, switches to 32-bit protected mode with a temporary GDT, puts <code>0x2BADB002</code> in EAX and the info-struct pointer in EBX, and jumps to the kernel entry. The entry stub sets up a stack, pushes those two registers, and calls into C.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p3">
+        <div class="part-head"><span class="part-num">03</span><h2>The linker script</h2></div>
+        <p class="standfirst">Where the kernel lives in memory, in what order, and why 2&nbsp;MiB.</p>
+
+        <p>The linker's job is to take all the <code>.o</code> files, merge their sections, assign every symbol a final address, and write one ELF. The <em>default</em> script does this for a hosted Linux program. You override it because your constraints are different: fixed load address, no interpreter, a specific section order.</p>
+
+        <pre><code>ENTRY(_start)                <span class="cmt">; the ELF entry point symbol</span>
+
+SECTIONS {
+    . = 2M;                   <span class="cmt">; location counter: start placing at 2 MiB</span>
+    kernel_start = .;
+
+    .text BLOCK(4K) : ALIGN(4K) {
+        *(.multiboot)         <span class="cmt">; FIRST — must be in first 8 KiB</span>
+        *(.text)
+    }
+    .rodata BLOCK(4K) : ALIGN(4K) { *(.rodata) }
+    .data   BLOCK(4K) : ALIGN(4K) { *(.data) }
+    .bss    BLOCK(4K) : ALIGN(4K) { *(COMMON) *(.bss) }
+
+    . = ALIGN(4K);
+    kernel_end = .;            <span class="cmt">; PMM uses this to avoid the kernel</span>
+}</code></pre>
+
+        <h3>The four sections</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Section</th><th>Holds</th><th>In the file?</th></tr></thead>
+            <tbody>
+              <tr><td><code>.text</code></td><td>Executable code (and here, the Multiboot header).</td><td>Yes</td></tr>
+              <tr><td><code>.rodata</code></td><td>Constants: string literals, <code>const</code> tables like <code>exception_messages[]</code>.</td><td>Yes</td></tr>
+              <tr><td><code>.data</code></td><td>Globals with a non-zero initial value.</td><td>Yes</td></tr>
+              <tr><td><code>.bss</code></td><td>Globals that start at zero — the stack, <code>page_directory</code>, the frame bitmap, the terminal buffer. Just a size; the loader zero-fills it.</td><td>No (size only)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Why 2&nbsp;MiB</h3>
+        <ul>
+          <li>The <strong>first 1&nbsp;MiB</strong> is a minefield: the real-mode IVT, the BIOS data area, VGA memory at <code>0xB8000</code>, option ROMs, the BIOS itself. You never link a kernel there.</li>
+          <li>Historically kernels load at <strong>1&nbsp;MiB</strong> (<code>0x100000</code>), the first "clean" address. This series uses <strong>2&nbsp;MiB</strong>, which also happens to be a 4&nbsp;MiB-page–friendly boundary and leaves the 1–2&nbsp;MiB region free.</li>
+          <li><code>ALIGN(4K)</code> on every section means each starts on a page boundary — needed once paging is on, so you could map <code>.text</code> read-only and <code>.data</code> read-write separately.</li>
+        </ul>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>kernel_start</code> / <code>kernel_end</code> are symbols the linker fills in with addresses. C declares them <code>extern uint8_t kernel_end[];</code> and takes <code>(uint32_t)kernel_end</code>. KFS_3's memory map deliberately puts the heap at 8&nbsp;MiB and the frame pool at 16&nbsp;MiB, well clear of a kernel image that ends around 6&nbsp;MiB (most of that is the 4&nbsp;MiB terminal scroll-back buffer in <code>.bss</code>).</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"What is <code>.bss</code> and why isn't it in the executable?"</strong> — It is zero-initialised static storage. Storing megabytes of zeros in the file would be wasteful, so the ELF only records the section's address and size; the loader (here, GRUB) allocates and zeroes it. That is why a kernel binary can be 40&nbsp;KB on disk but claim 4&nbsp;MB of memory.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p4">
+        <div class="part-head"><span class="part-num">04</span><h2>Just enough x86</h2></div>
+        <p class="standfirst">The registers, the two assembly syntaxes in this codebase, the calling convention, and how inline assembly talks to C.</p>
+
+        <h3>Registers you actually touch</h3>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Register(s)</th><th>Role</th></tr></thead>
+            <tbody>
+              <tr><td>eax ebx ecx edx</td><td>General purpose. Conventions: <code>eax</code> holds return values and the first CPUID leaf; <code>ecx</code> is the classic loop counter; <code>edx:eax</code> is the 64-bit result of some ops.</td></tr>
+              <tr><td>esi edi</td><td>General purpose; source/destination index for string ops (<code>rep movsb</code>).</td></tr>
+              <tr><td>esp</td><td>Stack pointer — top of the current stack, moves on every push/pop/call/ret.</td></tr>
+              <tr><td>ebp</td><td>Base/frame pointer — by convention, a fixed anchor into the current stack frame so locals and arguments have constant offsets.</td></tr>
+              <tr><td>eip</td><td>Instruction pointer. Not directly writable; changed by jumps, calls, returns, interrupts.</td></tr>
+              <tr><td>eflags</td><td>Status + control bits: CF ZF SF OF (arithmetic results), <strong>IF</strong> (interrupts enabled), DF (string direction), IOPL, and more. Your <code>eflags</code> shell command decodes it.</td></tr>
+              <tr><td>cs ds es fs gs ss</td><td>Segment selectors — 16-bit indices into the GDT. <code>cs</code> = code, <code>ss</code> = stack, <code>ds/es</code> = data. In a flat model they all point at "all of memory" but with different privileges.</td></tr>
+              <tr><td>cr0</td><td>Control: bit 0 <strong>PE</strong> (protected mode), bit 16 <strong>WP</strong> (enforce read-only pages even in ring 0), bit 31 <strong>PG</strong> (paging on).</td></tr>
+              <tr><td>cr2</td><td>On a page fault, the CPU writes the faulting linear address here.</td></tr>
+              <tr><td>cr3</td><td>Physical address of the current page directory. Reloading it flushes the TLB.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Two syntaxes, one CPU</h3>
+        <p>This codebase contains both x86 assembly dialects, which trips people up:</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th>AT&amp;T (GAS)</th><th>Intel (NASM)</th></tr></thead>
+            <tbody>
+              <tr><td>Files</td><td><code>boot.s</code></td><td><code>start.asm</code></td></tr>
+              <tr><td>Operand order</td><td><code>mov src, dst</code></td><td><code>mov dst, src</code></td></tr>
+              <tr><td>Registers</td><td><code>%eax</code></td><td><code>eax</code></td></tr>
+              <tr><td>Immediates</td><td><code>$0x10</code></td><td><code>0x10</code></td></tr>
+              <tr><td>Memory deref</td><td><code>(%ebx)</code>, <code>4(%ebx)</code></td><td><code>[ebx]</code>, <code>[ebx+4]</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>GCC's inline <code>__asm__</code> is always AT&amp;T. The <code>%%</code> you see there (<code>"mov %%cr0, %0"</code>) is an escaped <code>%</code> because <code>%0</code>, <code>%1</code> are operand placeholders.</p>
+
+        <h3>The calling convention (cdecl / SysV i386)</h3>
+        <p>Every C call in the kernel follows this, and the ISR stubs depend on it:</p>
+        <ul>
+          <li>Arguments pushed onto the stack <strong>right-to-left</strong>, so the first argument is at the lowest address (<code>[esp+4]</code> after the call pushes the return address).</li>
+          <li>The <strong>caller</strong> cleans up the arguments after the call returns.</li>
+          <li>Return value in <code>eax</code> (64-bit in <code>edx:eax</code>).</li>
+          <li><strong>Callee-saved:</strong> <code>ebx</code>, <code>esi</code>, <code>edi</code>, <code>ebp</code> — a function must preserve these. <strong>Caller-saved:</strong> <code>eax</code>, <code>ecx</code>, <code>edx</code> — assume any call clobbers them.</li>
+        </ul>
+        <p>This is exactly why <code>boot.s</code> can do <code>push ebx; push eax; call kernel_main</code> and C sees <code>(magic, mbi)</code> in that order.</p>
+
+        <h3>Reading inline assembly</h3>
+        <pre><code>uint32_t cr2;
+__asm__ volatile ("mov %%cr2, %0" : "=r"(cr2));
+<span class="cmt">//                   ^template      ^output: "=r" = write-only, any register</span>
+
+__asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
+<span class="cmt">//                                  ^inputs: val in AL ("a"), port in DX or imm8 ("Nd")</span>
+
+__asm__ volatile ("cpuid"
+    : "=a"(a), "=b"(b), "=c"(c), "=d"(d)   <span class="cmt">// outputs</span>
+    : "a"(0));                             <span class="cmt">// input: leaf 0 in EAX</span></code></pre>
+        <p><code>volatile</code> tells gcc "do not optimise this away or reorder it" — essential for hardware I/O and control-register pokes. The clobber list (third colon) names registers or <code>"memory"</code> the instruction trashes that aren't in the operand lists.</p>
+
+        <div class="callout gotcha">
+          <span class="tag">Gotcha</span>
+          <p><code>pusha</code> / <code>popa</code> push and pop <em>all eight</em> GP registers in a fixed order (eax, ecx, edx, ebx, <em>original</em> esp, ebp, esi, edi). The <code>struct regs</code> in <code>defs.h</code> is laid out to match <code>pusha</code> followed by the four segment pushes exactly — get the order wrong and every field in your fault handler is garbage.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p5">
+        <div class="part-head"><span class="part-num">05</span><h2>The stack</h2></div>
+        <p class="standfirst">How call frames are built, what the CPU pushes on an interrupt, and what the <code>stack</code> command is showing you.</p>
+
+        <h3>Frames</h3>
+        <p>The stack grows <strong>downward</strong> (toward lower addresses). A <code>call</code> pushes the return address and jumps. A typical function prologue then does:</p>
+        <pre><code>push %ebp          <span class="cmt">; save caller's frame pointer</span>
+mov  %esp, %ebp    <span class="cmt">; this frame's anchor</span>
+sub  $N, %esp      <span class="cmt">; reserve N bytes of locals</span>
+...
+mov  %ebp, %esp    <span class="cmt">; discard locals   (or: leave)</span>
+pop  %ebp          <span class="cmt">; restore caller's anchor</span>
+ret                <span class="cmt">; pop return address into eip</span></code></pre>
+        <p>With <code>ebp</code> fixed for the function's lifetime, argument <em>N</em> is always <code>[ebp + 8 + 4N]</code> and local <em>N</em> is <code>[ebp - ...]</code>. A debugger walks the call stack by following the saved-<code>ebp</code> chain: each <code>[ebp]</code> points at the previous frame's <code>ebp</code>, and <code>[ebp+4]</code> is that frame's return address.</p>
+
+        <div class="callout note">
+          <span class="tag">Note</span>
+          <p>At <code>-O2</code>, gcc often <em>omits the frame pointer</em> (<code>ebp</code> becomes a normal register and code addresses locals relative to <code>esp</code>). That is why the KFS_2 kernel's initial stack shows <code>ebp = 0x00000000</code> — nothing set it up; <code>_start</code> jumped straight to C.</p>
+        </div>
+
+        <h3>What an interrupt pushes</h3>
+        <p>When an interrupt or exception fires, the CPU itself pushes a small frame <em>before</em> your handler runs, so <code>iret</code> can resume exactly:</p>
+        <figure>
+          <svg viewBox="0 0 560 300" role="img" aria-labelledby="stk-t">
+            <title id="stk-t">Stack contents entering an ISR</title>
+            <g class="mono-svg">
+              <line class="svg-rule" x1="250" y1="12" x2="250" y2="288" stroke-width="1"/>
+              <text class="svg-faint sans-svg" x="258" y="20">higher addresses ↑</text>
+              <text class="svg-faint sans-svg" x="258" y="284">lower addresses ↓ (esp here)</text>
+
+              <g>
+                <rect class="svg-panel svg-rule" x="60" y="26" width="180" height="24" stroke-width="1"/><text class="svg-soft" x="150" y="42" text-anchor="middle">ss  (only if ring change)</text>
+                <rect class="svg-panel svg-rule" x="60" y="50" width="180" height="24" stroke-width="1"/><text class="svg-soft" x="150" y="66" text-anchor="middle">esp (only if ring change)</text>
+                <rect class="svg-panel svg-rule" x="60" y="74" width="180" height="24" stroke-width="1"/><text class="svg-ink" x="150" y="90" text-anchor="middle">eflags</text>
+                <rect class="svg-panel svg-rule" x="60" y="98" width="180" height="24" stroke-width="1"/><text class="svg-ink" x="150" y="114" text-anchor="middle">cs</text>
+                <rect class="svg-panel svg-rule" x="60" y="122" width="180" height="24" stroke-width="1"/><text class="svg-ink" x="150" y="138" text-anchor="middle">eip</text>
+                <text class="svg-faint sans-svg" x="250" y="90" text-anchor="start" dx="6">← pushed by CPU</text>
+              </g>
+              <g>
+                <rect class="svg-panel svg-danger" x="60" y="146" width="180" height="24" stroke-width="1" fill="none" stroke="currentColor"/><text class="svg-danger" x="150" y="162" text-anchor="middle">error code (some vectors)</text>
+                <rect class="svg-panel svg-amber" x="60" y="170" width="180" height="24" stroke-width="1" fill="none" stroke="currentColor"/><text class="svg-amber" x="150" y="186" text-anchor="middle">int_no  (pushed by stub)</text>
+                <text class="svg-faint sans-svg" x="250" y="174" dx="6">← isrN: push 0 / push N</text>
+              </g>
+              <g>
+                <rect class="svg-panel svg-accent-s" x="60" y="194" width="180" height="52" stroke-width="1.3"/><text class="svg-accent" x="150" y="214" text-anchor="middle">pusha (8 regs)</text><text class="svg-accent" x="150" y="230" text-anchor="middle">+ ds es fs gs</text>
+                <text class="svg-faint sans-svg" x="250" y="222" dx="6">← isr_common_stub</text>
+              </g>
+              <text class="svg-ink sans-svg" x="150" y="266" text-anchor="middle">esp → passed to fault_handler as struct regs*</text>
+            </g>
+          </svg>
+          <figcaption>The stub's job is to make the messy hardware frame look like one clean <code>struct regs</code>.</figcaption>
+        </figure>
+
+        <p>Some exception vectors (8, 10–14, 17) push a hardware <strong>error code</strong>; the rest don't. The stubs paper over this: vectors without one <code>push $0</code> first, so <code>struct regs</code> always has an <code>err_code</code> slot at the same offset. After the handler, the common stub restores everything and does <code>add $8, %esp</code> (drop <code>int_no</code> + <code>err_code</code>) then <code>iret</code>, which pops <code>eip/cs/eflags</code> (and <code>esp/ss</code> on a ring change) atomically.</p>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>stack</code> in the KFS_2 shell writes a handful of marker words (<code>0x11111111</code> … <code>0xDDDDDDDD</code>) to a local array, then dumps memory upward from <code>esp</code> in the same 4-words-per-row layout as GDB's <code>x/32xw $esp</code>. The <code>esp</code>/<code>ebp</code> cells are coloured; the markers show up green so you can see where "your" data sits among saved registers and return addresses.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"How does a handler return to exactly where the interrupt happened?"</strong> — The CPU pushed <code>eip</code>, <code>cs</code>, and <code>eflags</code> (plus <code>esp</code>/<code>ss</code> if the privilege level changed) when it took the interrupt. <code>iret</code> pops them back in one atomic step. Your stub is responsible for restoring the GP and segment registers it saved, and for removing anything it pushed itself, before executing <code>iret</code>.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p6">
+        <div class="part-head"><span class="part-num">06</span><h2>VGA text mode &amp; <code>printf</code></h2></div>
+        <p class="standfirst">The one piece of memory-mapped hardware you can use with zero setup, and how to build a formatter with no libc.</p>
+
+        <h3>The text buffer</h3>
+        <p>In VGA text mode the screen is <strong>memory-mapped</strong> at physical <code>0xB8000</code>: an 80×25 grid of 16-bit cells. Write a value there and the character appears on the next refresh — no driver, no MMIO handshake.</p>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Bits of the cell</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>0–7</td><td>Code point (code page 437).</td></tr>
+              <tr><td>8–11</td><td>Foreground colour (16 colours).</td></tr>
+              <tr><td>12–14</td><td>Background colour (8 colours).</td></tr>
+              <tr><td>15</td><td>Blink (or bright background, depending on mode).</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre><code>static inline uint16_t vga_entry(unsigned char ch, uint8_t colour) {
+    return (uint16_t)ch | (uint16_t)colour &lt;&lt; 8;
+}
+static inline uint8_t vga_color(enum vga_color fg, enum vga_color bg) {
+    return fg | bg &lt;&lt; 4;
+}
+buffer[row * 80 + col] = vga_entry('A', vga_color(LIGHT_GREEN, BLACK));</code></pre>
+        <p>The blinking hardware cursor is separate — it is positioned by writing a cell index to <strong>CRTC registers</strong> via port <code>0x3D4</code> (index) / <code>0x3D5</code> (data), which is what <code>update_cursor()</code> does.</p>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p>The terminal keeps an off-screen <code>screen_t</code> per virtual screen with a large scroll-back buffer, and <code>refresh_display()</code> blits the visible 80×25 window into <code>0xB8000</code>. KFS_2 adds <code>terminal_set_color()</code> / <code>terminal_reset_color()</code> so <code>gdt</code>, <code>stack</code>, and panics can colour their output.</p>
+        </div>
+
+        <h3>Building <code>kprintf</code> without a standard library</h3>
+        <p>Variadic functions work in freestanding C because <code>&lt;stdarg.h&gt;</code> is one of the guaranteed headers. The formatter is a loop:</p>
+        <pre><code>int kvprintf(void (*putc)(char), const char *fmt, va_list ap) {
+    for (const char *p = fmt; *p; p++) {
+        if (*p != '%') { putc(*p); continue; }
+        p++;
+        <span class="cmt">// parse flags (- and 0), then width digits</span>
+        switch (*p) {
+        case 'd': { int v = va_arg(ap, int);           <span class="cmt">/* itoa base 10 */</span> }
+        case 'x': { unsigned v = va_arg(ap, unsigned);  <span class="cmt">/* itoa base 16 */</span> }
+        case 's': { const char *s = va_arg(ap, const char*); ... }
+        case 'c': { char c = (char)va_arg(ap, int); ... }  <span class="cmt">// promoted to int</span>
+        }
+    }
+}</code></pre>
+        <p>The number conversion is the classic "divide by base, collect remainders, reverse the string." The KFS_2 version adds <code>%p</code>, zero/space padding, and left-justify (<code>%-13s</code>) via one <code>emit_padded()</code> helper. Passing <code>putc</code> as a function pointer lets the same core drive the live screen or a specific virtual screen.</p>
+
+        <div class="callout gotcha">
+          <span class="tag">Gotcha</span>
+          <p><code>char</code> and <code>short</code> arguments to a variadic function are promoted to <code>int</code>; <code>float</code> to <code>double</code>. So <code>%c</code> must do <code>va_arg(ap, int)</code>, not <code>va_arg(ap, char)</code> — the latter is undefined behaviour.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p7">
+        <div class="part-head"><span class="part-num">07</span><h2>The GDT &amp; segmentation</h2></div>
+        <p class="standfirst">The table the CPU consults to turn a segment selector into a base, a limit, and a privilege level — and why you still need it even with a flat memory model.</p>
+
+        <h3>Segmentation, briefly</h3>
+        <p>Before paging, x86's memory scheme was <strong>segmentation</strong>: an address is <code>segment : offset</code>, and the segment names a region with a base and a size. In real mode this is just <code>base = segment × 16</code>. In protected mode the segment register holds a <strong>selector</strong> — an index into a descriptor table — and the descriptor carries a 32-bit base, a 20-bit limit, and access rights.</p>
+        <p>Modern kernels don't <em>use</em> segmentation for memory layout — they set every segment to base 0, limit 4&nbsp;GiB (the "flat model") and do all real memory management with paging. But you still must define those flat segments, because:</p>
+        <ul>
+          <li>The CPU refuses to run in protected mode without a valid GDT and <code>CS</code>/<code>SS</code> loaded from it.</li>
+          <li>The descriptor's <strong>DPL</strong> (privilege) field is how the CPU knows whether code is ring 0 (kernel) or ring 3 (user).</li>
+          <li>Interrupt gates in the IDT reference a code segment <em>selector</em> — <code>0x08</code> in this kernel.</li>
+        </ul>
+
+        <h3>A descriptor, bit by bit</h3>
+        <p>Each GDT entry is 8 bytes with a famously awkward layout (the base and limit are split across non-adjacent fields for 286 backward compatibility):</p>
+        <figure>
+          <svg viewBox="0 0 680 150" role="img" aria-labelledby="gdt-t">
+            <title id="gdt-t">GDT descriptor access and granularity bytes</title>
+            <g class="mono-svg">
+              <text class="svg-faint sans-svg" x="10" y="20">Access byte (offset 5)</text>
+              <g transform="translate(10,28)">
+                <rect class="svg-panel svg-rule" x="0" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="35" y="19" text-anchor="middle">P</text>
+                <rect class="svg-panel svg-rule" x="70" y="0" width="90" height="30" stroke-width="1"/><text class="svg-accent" x="115" y="19" text-anchor="middle">DPL (2)</text>
+                <rect class="svg-panel svg-rule" x="160" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="195" y="19" text-anchor="middle">S</text>
+                <rect class="svg-panel svg-rule" x="230" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="265" y="19" text-anchor="middle">E</text>
+                <rect class="svg-panel svg-rule" x="300" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="335" y="19" text-anchor="middle">DC</text>
+                <rect class="svg-panel svg-rule" x="370" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="405" y="19" text-anchor="middle">RW</text>
+                <rect class="svg-panel svg-rule" x="440" y="0" width="70" height="30" stroke-width="1"/><text class="svg-accent" x="475" y="19" text-anchor="middle">A</text>
+              </g>
+              <text class="svg-soft sans-svg" x="10" y="82">P present · DPL ring 0–3 · S 1=code/data 0=system · E executable · DC direction/conforming · RW read(code)/write(data) · A accessed</text>
+
+              <text class="svg-faint sans-svg" x="10" y="112">Flags nibble (high bits of offset 6)</text>
+              <g transform="translate(10,118)">
+                <rect class="svg-panel svg-rule" x="0" y="0" width="90" height="24" stroke-width="1"/><text class="svg-accent" x="45" y="16" text-anchor="middle">G</text>
+                <rect class="svg-panel svg-rule" x="90" y="0" width="90" height="24" stroke-width="1"/><text class="svg-accent" x="135" y="16" text-anchor="middle">D/B</text>
+                <rect class="svg-panel svg-rule" x="180" y="0" width="90" height="24" stroke-width="1"/><text class="svg-accent" x="225" y="16" text-anchor="middle">L</text>
+                <rect class="svg-panel svg-rule" x="270" y="0" width="90" height="24" stroke-width="1"/><text class="svg-faint" x="315" y="16" text-anchor="middle">rsv</text>
+                <text class="svg-soft sans-svg" x="375" y="16">G 1=limit in 4KiB pages · D/B 1=32-bit · L 1=64-bit code</text>
+              </g>
+            </g>
+          </svg>
+          <figcaption>The <code>gdt</code> shell command decodes exactly these fields for each of the 7 entries.</figcaption>
+        </figure>
+
+        <p>The KFS_2 GDT has seven entries, and the encodings become readable once you know the byte:</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>#</th><th>Selector</th><th>Access</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>0x00</td><td><code>0x00</code></td><td>Null descriptor — mandatory, must never be loaded.</td></tr>
+              <tr><td>1</td><td>0x08</td><td><code>0x9A</code></td><td>Kernel code: P=1, DPL=0, S=1, Exec, Read.</td></tr>
+              <tr><td>2</td><td>0x10</td><td><code>0x92</code></td><td>Kernel data: P=1, DPL=0, S=1, Write.</td></tr>
+              <tr><td>3</td><td>0x18</td><td><code>0x96</code></td><td>Kernel stack (data, expand-down variant).</td></tr>
+              <tr><td>4</td><td>0x20</td><td><code>0xFA</code></td><td>User code: same as #1 but DPL=3.</td></tr>
+              <tr><td>5</td><td>0x28</td><td><code>0xF2</code></td><td>User data: DPL=3.</td></tr>
+              <tr><td>6</td><td>0x30</td><td><code>0xF6</code></td><td>User stack: DPL=3.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Granularity byte <code>0xCF</code> on every entry = <code>G=1</code> (limit counts 4-KiB units) + <code>D/B=1</code> (32-bit) + limit's top nibble <code>0xF</code>. With <code>limit_low = 0xFFFF</code> too, the segment spans <code>0xFFFFF</code> 4-KiB pages = the full 4&nbsp;GiB.</p>
+
+        <h3>A selector is not just an index</h3>
+        <p>The 16-bit value you load into a segment register is: <code>index (13 bits) | TI (1 bit, 0 = GDT) | RPL (2 bits)</code>. So GDT entry 1 → selector <code>1 &lt;&lt; 3 = 0x08</code>; entry 2 → <code>0x10</code>. The bottom two bits are the <strong>Requested Privilege Level</strong>. Privilege checks use <code>max(CPL, RPL)</code> vs the descriptor's <code>DPL</code>.</p>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Term</th><th>Is</th></tr></thead>
+            <tbody>
+              <tr><td>CPL</td><td>Current Privilege Level — the low 2 bits of <code>CS</code> right now. 0 = kernel, 3 = user.</td></tr>
+              <tr><td>DPL</td><td>Descriptor Privilege Level — the privilege stored in a segment/gate descriptor.</td></tr>
+              <tr><td>RPL</td><td>Requested Privilege Level — low 2 bits of a selector value, lets the kernel voluntarily act with reduced rights.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Installing it</h3>
+        <pre><code>gp.limit = sizeof(gdt) - 1;      <span class="cmt">// "limit" = size minus one, always</span>
+gp.base  = (uint32_t)&amp;gdt;
+gdt_flush();                     <span class="cmt">// asm: lgdt [gp]; reload segments</span></code></pre>
+        <pre><code>gdt_flush:                       <span class="cmt">; start.asm</span>
+    lgdt [gp]
+    mov ax, 0x10                 <span class="cmt">; kernel data selector</span>
+    mov ds, ax                   <span class="cmt">; ...into every data segment reg</span>
+    mov es, ax
+    mov ss, ax
+    jmp 0x08:.flush              <span class="cmt">; FAR jump: this is what reloads CS</span>
+.flush:
+    ret</code></pre>
+        <p>You cannot <code>mov</code> into <code>CS</code>. The only way to reload it — and thus start fetching instructions through your new code descriptor — is a far jump or far return. That single <code>jmp 0x08:.flush</code> is the moment the CPU starts trusting your GDT.</p>
+
+        <div class="callout gotcha">
+          <span class="tag">Gotcha</span>
+          <p>Entry 0 <em>must</em> be all zeros and no segment register may hold selector <code>0x00</code>. Loading a data segment with the null selector is legal (it just faults on use); loading <code>CS</code> or <code>SS</code> with it is an immediate <code>#GP</code>. This is a deliberate CPU safety net against uninitialised segment registers.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"If you use a flat memory model, why have a GDT at all?"</strong> — Three reasons: protected mode literally won't run without a valid GDT and a code segment loaded from it; the descriptor's DPL is the mechanism the CPU uses to distinguish ring 0 from ring 3; and IDT gates reference a GDT code selector. You also need it later for a TSS, which is how the CPU finds the ring-0 stack when a user-mode interrupt fires.</p>
+        </div>
+        <details class="qa">
+          <summary>"What is the null descriptor for?"</summary>
+          <div class="a"><p>It occupies index 0 so that a zeroed selector value points at a guaranteed-invalid entry. That turns "forgot to initialise a segment register" from a silent bug into a fault. It also gives <code>lgdt</code> a defined entry at offset 0.</p></div>
+        </details>
+      </section>
+
+      <section class="part" id="p8">
+        <div class="part-head"><span class="part-num">08</span><h2>The IDT, exceptions &amp; ISRs</h2></div>
+        <p class="standfirst">The table that maps interrupt vector 0–255 to a handler, the 32 CPU exceptions, and the assembly trampolines that make them callable from C.</p>
+
+        <h3>Interrupt vs exception vs IRQ</h3>
+        <ul>
+          <li><strong>Exception</strong> — the CPU raised it synchronously because an instruction couldn't complete: divide by zero (#DE, 0), invalid opcode (#UD, 6), general protection (#GP, 13), page fault (#PF, 14). Vectors <strong>0–31</strong> are reserved for these.</li>
+          <li><strong>Hardware interrupt (IRQ)</strong> — a device asserted a line asynchronously: timer, keyboard, disk. Delivered through the PIC (<a href="#p9">Part 09</a>).</li>
+          <li><strong>Software interrupt</strong> — the <code>int N</code> instruction. Used for syscalls (<code>int 0x80</code> on classic Linux).</li>
+        </ul>
+        <p>All three funnel through the same <strong>IDT</strong>: 256 entries, each an 8-byte <em>gate descriptor</em>.</p>
+
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Gate field</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>offset (16+16)</td><td>Address of the handler, split low/high.</td></tr>
+              <tr><td>selector</td><td>Code segment to run the handler in — <code>0x08</code> (kernel code).</td></tr>
+              <tr><td>type</td><td><code>0xE</code> = 32-bit <em>interrupt gate</em> (clears IF on entry), <code>0xF</code> = <em>trap gate</em> (leaves IF set). This kernel uses <code>0x8E</code> = present + DPL 0 + interrupt gate.</td></tr>
+              <tr><td>DPL</td><td>Minimum privilege to invoke via <code>int</code>. Kept at 0 so user code can't fake exceptions; a syscall gate would use DPL 3.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Which vectors push an error code</h3>
+        <p>The CPU pushes a hardware error code for exceptions <strong>8, 10, 11, 12, 13, 14, 17</strong> (and 21). For every other vector it pushes nothing. The stubs normalise this:</p>
+        <pre><code>isr0:                 <span class="cmt">; no error code -&gt; push a fake 0</span>
+    cli
+    push byte 0
+    push byte 0        <span class="cmt">; vector number</span>
+    jmp isr_common_stub
+
+isr8:                 <span class="cmt">; CPU already pushed an error code</span>
+    cli
+    push byte 8        <span class="cmt">; just the vector number</span>
+    jmp isr_common_stub</code></pre>
+
+        <p>The common stub then builds the full <code>struct regs</code> and calls one C function:</p>
+        <pre><code>isr_common_stub:
+    pusha                 <span class="cmt">; eax ecx edx ebx esp ebp esi edi</span>
+    push ds
+    push es
+    push fs
+    push gs
+    mov ax, 0x10          <span class="cmt">; ensure kernel data segments</span>
+    mov ds, ax
+    mov es, ax  &amp;c
+    mov eax, esp
+    push eax              <span class="cmt">; arg: struct regs *</span>
+    call fault_handler
+    pop eax
+    pop gs / fs / es / ds
+    popa
+    add esp, 8            <span class="cmt">; discard int_no + err_code</span>
+    iret</code></pre>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>isrs_install()</code> fills IDT entries 0–31 with the 32 stub addresses. <code>fault_handler()</code> in <code>isrs.c</code> looks up <code>exception_messages[r-&gt;int_no]</code> and, in KFS_2/3, routes: <code>#BP</code>/<code>#DB</code> → recoverable warning and return; <code>#PF</code> → <code>page_fault_handler()</code> (KFS_3); everything else → fatal <code>panic_from_regs()</code>.</p>
+        </div>
+
+        <h3>Installing the IDT</h3>
+        <pre><code>idtp.limit = sizeof(idt) - 1;
+idtp.base  = (uint32_t)&amp;idt;
+memset(&amp;idt, 0, sizeof(idt));   <span class="cmt">// unfilled vectors = not present</span>
+idt_load();                    <span class="cmt">// asm: lidt [idtp]</span></code></pre>
+        <p>Same shape as the GDT: a "pointer" register (limit + base) loaded by a dedicated instruction. Vectors you never fill stay zero (not-present); if one fires, you get a <code>#GP</code> or a triple fault, which is a strong hint you forgot a handler.</p>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"What is the difference between an interrupt gate and a trap gate?"</strong> — An interrupt gate clears <code>IF</code> (the interrupt-enable flag) as the CPU takes the interrupt, so the handler runs with hardware interrupts masked; a trap gate leaves <code>IF</code> untouched, allowing nested interrupts. Use interrupt gates for device IRQs (you don't want a re-entrant timer), trap gates for things like debug exceptions where nesting is fine.</p>
+        </div>
+        <details class="qa">
+          <summary>"What is a double fault? A triple fault?"</summary>
+          <div class="a"><p>A <strong>double fault</strong> (#DF, vector 8) is raised when the CPU hits a second exception <em>while trying to deliver</em> a first one — e.g. a page fault whose handler isn't present. If delivering the double fault <em>also</em> fails, the CPU gives up and <strong>triple faults</strong>, which on real hardware and QEMU means a reset. An unexplained reboot loop in a kernel almost always means a triple fault — usually a bad IDT, bad GDT, or a fault very early in boot.</p></div>
+        </details>
+      </section>
+
+      <section class="part" id="p9">
+        <div class="part-head"><span class="part-num">09</span><h2>PIC, IRQs, PIT &amp; keyboard</h2></div>
+        <p class="standfirst">Getting hardware interrupts to your handlers: remapping the 8259, the timer tick, and reading the keyboard.</p>
+
+        <h3>The 8259 PIC and why you must remap it</h3>
+        <p>Two cascaded <strong>8259A Programmable Interrupt Controllers</strong> multiplex 15 device IRQ lines onto the single CPU interrupt pin. The master handles IRQ 0–7, the slave IRQ 8–15, and the slave's output feeds the master's IRQ 2.</p>
+        <p>Out of reset, the master maps IRQ 0–7 to CPU vectors <strong>0x08–0x0F</strong>. That collides head-on with CPU exceptions 8–15 — a timer tick would look like a double fault. So the first thing you do is reprogram the PICs with a four-word init sequence (ICW1–ICW4) to move them to vectors <strong>0x20–0x2F</strong>:</p>
+        <pre><code>outb(0x20, 0x11); outb(0xA0, 0x11);  <span class="cmt">// ICW1: begin init, expect ICW4</span>
+outb(0x21, 0x20); outb(0xA1, 0x28);  <span class="cmt">// ICW2: master base 0x20, slave 0x28</span>
+outb(0x21, 0x04); outb(0xA1, 0x02);  <span class="cmt">// ICW3: slave is wired to master IRQ2</span>
+outb(0x21, 0x01); outb(0xA1, 0x01);  <span class="cmt">// ICW4: 8086 mode</span>
+outb(0x21, 0x00); outb(0xA1, 0x00);  <span class="cmt">// unmask all lines</span></code></pre>
+        <p>Now IRQ 0 arrives as vector 32, IRQ 1 as vector 33, and so on. <code>irq_install()</code> points IDT entries 32–47 at the <code>irq0..irq15</code> stubs, which share an <code>irq_common_stub</code> nearly identical to the ISR one but calling <code>irq_handler()</code>.</p>
+
+        <h3>End Of Interrupt</h3>
+        <p>The PIC will not deliver another interrupt of equal or lower priority until you acknowledge the current one by writing <code>0x20</code> (the EOI command) to its command port. For an IRQ from the slave (≥ 8), you must EOI <strong>both</strong> PICs:</p>
+        <pre><code>void irq_handler(struct regs *r) {
+    void (*handler)(struct regs*) = irq_routines[r-&gt;int_no - 32];
+    if (handler) handler(r);
+    if (r-&gt;int_no &gt;= 40) outb(0xA0, 0x20);  <span class="cmt">// EOI slave</span>
+    outb(0x20, 0x20);                       <span class="cmt">// EOI master</span>
+}</code></pre>
+        <div class="callout gotcha">
+          <span class="tag">Gotcha</span>
+          <p>Forget the EOI and that IRQ line goes dead after one interrupt — the keyboard types exactly one character then stops. Send it too early (before reading the device) and you can miss or double-read data.</p>
+        </div>
+
+        <h3>IRQ 0 — the PIT</h3>
+        <p>The <strong>8253/8254 Programmable Interval Timer</strong> has a fixed input clock of <strong>1&nbsp;193&nbsp;182&nbsp;Hz</strong>. You program channel 0 with a 16-bit divisor; it then fires IRQ 0 at <code>1193182 / divisor</code> Hz. KFS_2 sets 100&nbsp;Hz:</p>
+        <pre><code>uint32_t divisor = 1193182 / 100;
+outb(0x43, 0x36);                 <span class="cmt">// channel 0, lo/hi byte, mode 3 (square wave)</span>
+outb(0x40, divisor &amp; 0xFF);
+outb(0x40, divisor &gt;&gt; 8);</code></pre>
+        <p>The handler just increments <code>timer_ticks</code>; <code>uptime</code> divides by the frequency. This same tick is what a real kernel uses to drive preemptive scheduling.</p>
+
+        <h3>IRQ 1 — the keyboard</h3>
+        <p>The 8042-style keyboard controller exposes two ports: <strong><code>0x60</code></strong> (data) and <strong><code>0x64</code></strong> (status/command). On each keypress or release it raises IRQ 1; you read one <strong>scan code</strong> from <code>0x60</code>.</p>
+        <ul>
+          <li>Scan code set 1: a <em>make</em> code on press, and the same value <code>| 0x80</code> as the <em>break</em> code on release. So bit 7 tells you press vs release.</li>
+          <li>A leading <code>0xE0</code> byte marks an <em>extended</em> key (arrow keys, right-ctrl, …); you read the next byte to identify it.</li>
+          <li>Scan codes are <em>positional</em>, not ASCII. You translate through a lookup table — two tables, actually: <code>kbdus[]</code> and <code>kbdus_shift[]</code> — tracking shift/alt as state across interrupts.</li>
+        </ul>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>keyboard_handler()</code> tracks <code>shift_pressed</code>/<code>alt_pressed</code>/<code>extended_scancode</code> as <code>static</code> flags, maps the code to a character, and either feeds the shell (<code>shell_handle_key</code>) or echoes it. <code>ESC</code> is intercepted at the scancode layer to toggle the shell; <code>ALT</code>+arrows switch virtual screens.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"Why do you remap the PIC?"</strong> — Because its power-on vector base (0x08) overlaps the CPU's reserved exception range (0–31). Without remapping, IRQ 0 (timer) is indistinguishable from vector 8 (#DF). You reprogram both PICs to a free base (0x20) via the ICW1–4 sequence so device interrupts land at 32–47.</p>
+        </div>
+        <details class="qa">
+          <summary>"Interrupts vs polling — when each?"</summary>
+          <div class="a"><p>Polling (spin reading a status port) is simple and has low latency for one device you're actively waiting on, but wastes 100% CPU and scales terribly. Interrupts let the CPU do other work (or <code>hlt</code>) until a device needs service — essential for a multitasking kernel. The cost is the context-save/restore on every interrupt and the concurrency hazards of re-entrancy. Real drivers often combine both: interrupt to wake up, then poll-drain a queue.</p></div>
+        </details>
+      </section>
+
+      <section class="part" id="p10">
+        <div class="part-head"><span class="part-num">10</span><h2>Paging</h2></div>
+        <p class="standfirst">Turning every address the CPU sees into a lookup through tables you control — the core of KFS_3.</p>
+
+        <h3>Why paging</h3>
+        <ul>
+          <li><strong>Isolation.</strong> Each process gets its own page tables, so its address 0x40000000 and another process's 0x40000000 map to different physical RAM. One process cannot even <em>name</em> another's memory.</li>
+          <li><strong>Over-commit &amp; demand paging.</strong> A page can be marked not-present and its contents kept on disk; touching it faults, the kernel loads it, and execution resumes. This is how you run programs bigger than RAM.</li>
+          <li><strong>Fine-grained rights.</strong> Per-page read/write and user/supervisor bits — you can map code read-only and data no-execute.</li>
+          <li><strong>No external fragmentation of virtual space.</strong> Physically scattered frames can be mapped to a contiguous virtual range (this is exactly what <code>vmalloc</code> exploits).</li>
+        </ul>
+
+        <h3>The 32-bit two-level walk</h3>
+        <p>With 4-KiB pages, a linear address splits into three fields:</p>
+        <figure>
+          <svg viewBox="0 0 680 250" role="img" aria-labelledby="pg-t">
+            <title id="pg-t">Linear-to-physical translation through the page directory and table</title>
+            <g class="mono-svg">
+              <g transform="translate(20,14)">
+                <rect class="svg-panel svg-accent-s" x="0" y="0" width="150" height="26" stroke-width="1.2"/><text class="svg-accent" x="75" y="17" text-anchor="middle">dir index (10)</text>
+                <rect class="svg-panel svg-accent-s" x="150" y="0" width="150" height="26" stroke-width="1.2"/><text class="svg-accent" x="225" y="17" text-anchor="middle">table index (10)</text>
+                <rect class="svg-panel svg-rule" x="300" y="0" width="170" height="26" stroke-width="1"/><text class="svg-soft" x="385" y="17" text-anchor="middle">page offset (12)</text>
+                <text class="svg-faint sans-svg" x="0" y="40">bit 31</text><text class="svg-faint sans-svg" x="440" y="40">bit 0</text>
+              </g>
+
+              <g transform="translate(20,70)">
+                <rect class="svg-panel svg-rule" x="0" y="20" width="120" height="34" stroke-width="1"/><text class="svg-ink sans-svg" x="60" y="41" text-anchor="middle">CR3</text>
+                <path class="svg-accent-s" d="M120 37h40" stroke-width="1.2" marker-end="url(#ar2)"/>
+
+                <rect class="svg-panel svg-rule" x="165" y="0" width="150" height="90" stroke-width="1"/>
+                <text class="svg-faint sans-svg" x="240" y="-6" text-anchor="middle">page directory</text>
+                <line class="svg-rule" x1="165" y1="30" x2="315" y2="30"/><line class="svg-rule" x1="165" y1="60" x2="315" y2="60"/>
+                <rect class="svg-accent" x="165" y="30" width="150" height="30" opacity="0.16"/>
+                <text class="svg-accent sans-svg" x="240" y="49" text-anchor="middle">PDE[dir index]</text>
+                <path class="svg-accent-s" d="M315 45h40" stroke-width="1.2" marker-end="url(#ar2)"/>
+
+                <rect class="svg-panel svg-rule" x="360" y="0" width="150" height="90" stroke-width="1"/>
+                <text class="svg-faint sans-svg" x="435" y="-6" text-anchor="middle">page table</text>
+                <line class="svg-rule" x1="360" y1="30" x2="510" y2="30"/><line class="svg-rule" x1="360" y1="60" x2="510" y2="60"/>
+                <rect class="svg-accent" x="360" y="30" width="150" height="30" opacity="0.16"/>
+                <text class="svg-accent sans-svg" x="435" y="49" text-anchor="middle">PTE[table index]</text>
+                <path class="svg-accent-s" d="M510 45h30" stroke-width="1.2" marker-end="url(#ar2)"/>
+
+                <rect class="svg-panel svg-rule" x="545" y="20" width="115" height="50" stroke-width="1"/>
+                <text class="svg-ink sans-svg" x="602" y="38" text-anchor="middle">frame +</text>
+                <text class="svg-ink sans-svg" x="602" y="54" text-anchor="middle">offset</text>
+              </g>
+              <text class="svg-faint sans-svg" x="20" y="230">1024 PDEs × 1024 PTEs × 4 KiB = 4 GiB. Each table is exactly one 4-KiB page.</text>
+            </g>
+            <defs><marker id="ar2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path class="svg-accent" d="M0 0l7 3.5L0 7z"/></marker></defs>
+          </svg>
+          <figcaption>The CPU does this walk on every memory access whose translation isn't already cached in the TLB.</figcaption>
+        </figure>
+
+        <h3>Directory / table entry format</h3>
+        <p>A PDE and a PTE are both 32 bits: the top 20 are a physical frame number, the bottom 12 are flags. The frame number is only 20 bits because everything is 4-KiB aligned — the low 12 bits are always zero, so they're reused for flags.</p>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Bit</th><th>Name</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>P</td><td>Present. 0 → any access faults (this is the demand-paging / swap hook).</td></tr>
+              <tr><td>1</td><td>R/W</td><td>0 = read-only. Enforced in ring 0 only if <code>CR0.WP</code> is set.</td></tr>
+              <tr><td>2</td><td>U/S</td><td>0 = supervisor-only (ring 0–2). This is the kernel/user split at page granularity.</td></tr>
+              <tr><td>3–4</td><td>PWT, PCD</td><td>Write-through / cache-disable for this page.</td></tr>
+              <tr><td>5</td><td>A</td><td>Accessed — CPU sets it on any access.</td></tr>
+              <tr><td>6</td><td>D</td><td>Dirty — CPU sets it on write (PTE only). Used to know if a swapped page needs writing back.</td></tr>
+              <tr><td>7</td><td>PS</td><td>PDE only: 1 = this entry maps a single 4-MiB page, no second level.</td></tr>
+              <tr><td>8</td><td>G</td><td>Global — TLB entry survives a CR3 reload (needs <code>CR4.PGE</code>).</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>The TLB</h3>
+        <p>Walking two tables per access would be ruinous, so the CPU caches recent translations in the <strong>Translation Lookaside Buffer</strong>. The consequence: <em>if you change a page table entry, the CPU may still use the stale cached translation.</em> You must invalidate it:</p>
+        <ul>
+          <li><code>invlpg (addr)</code> — drop the TLB entry for one page (what <code>map_page</code>/<code>unmap_page</code> do).</li>
+          <li>Reloading <code>CR3</code> — flushes the whole non-global TLB (e.g. on a context switch).</li>
+        </ul>
+
+        <h3>Turning it on</h3>
+        <pre><code>void paging_init(void) {
+    <span class="cmt">// identity-map the first 64 MiB with real 4-KiB pages</span>
+    for (d = 0; d &lt; 16; d++) {
+        for (e = 0; e &lt; 1024; e++)
+            identity_pt[d][e] = ((d*1024 + e) * 0x1000) | PAGE_PRESENT | PAGE_RW;
+        page_directory[d] = (uint32_t)identity_pt[d] | PAGE_PRESENT | PAGE_RW;
+    }
+    load_cr3((uint32_t)page_directory);
+    <span class="cmt">// set CR0.PG (bit 31) + CR0.WP (bit 16)</span>
+    write_cr0(read_cr0() | 0x80010000);
+}</code></pre>
+
+        <h3>Identity mapping — what and why</h3>
+        <p>An <strong>identity map</strong> makes linear address <em>X</em> translate to physical address <em>X</em>. KFS_3 identity-maps the first 64&nbsp;MiB. Two reasons this is the pragmatic choice for a teaching kernel:</p>
+        <ol>
+          <li>The instant you set <code>CR0.PG</code>, the very next instruction fetch goes through the tables. If the code you're executing isn't mapped, you triple-fault immediately. Identity mapping the kernel means "nothing changes" at the moment of the switch.</li>
+          <li>To edit a page table you must be able to <em>write to it</em>, which means it must be mapped. If every frame you allocate for a new page table lives in the identity-mapped region, its physical address <em>is</em> a usable pointer.</li>
+        </ol>
+        <p>The "real" design is a <strong>higher-half kernel</strong>: link the kernel at <code>0xC0000000+</code>, map it there, and leave the low address space entirely for user processes. KFS_3 skips that to keep the focus on the allocators.</p>
+
+        <h3>Page faults</h3>
+        <p>On a <code>#PF</code> the CPU writes the faulting linear address to <strong><code>CR2</code></strong> and pushes an <strong>error code</strong> whose low bits explain the fault:</p>
+        <div class="tablewrap">
+          <table class="bits">
+            <thead><tr><th>Bit</th><th>0</th><th>1</th></tr></thead>
+            <tbody>
+              <tr><td>P</td><td>page not present</td><td>protection violation</td></tr>
+              <tr><td>W/R</td><td>was a read</td><td>was a write</td></tr>
+              <tr><td>U/S</td><td>fault in kernel</td><td>fault in user</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A real kernel's handler inspects this to decide: grow the stack, copy-on-write, load a swapped page, or kill the process. KFS_3's handler decodes it into a readable panic line — <code>page fault at 0xADDR (not-present, write, kernel) eip=…</code>.</p>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>map_page(virt, phys, flags)</code> allocates a page-table frame from the PMM if the directory entry is missing, then writes the PTE and <code>invlpg</code>s. <code>virt_to_phys()</code> does the walk in software — the <code>paging</code> shell command uses it to print the PDE, PTE, and resulting physical address for any linear address you give it.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"Translate 0x40001234 for me."</strong> — Split it: dir index = <code>0x40001234 &gt;&gt; 22</code> = 256, table index = <code>(0x40001234 &gt;&gt; 12) &amp; 0x3FF</code> = 1, offset = <code>0x234</code>. CPU reads <code>PDE = mem[CR3 + 256*4]</code>, checks Present, takes its frame as the page-table base, reads <code>PTE = mem[pt_base + 1*4]</code>, checks Present + permissions, and the physical address is <code>(PTE &amp; 0xFFFFF000) | 0x234</code>. If either Present bit is 0, <code>#PF</code> with CR2 = 0x40001234.</p>
+        </div>
+        <details class="qa">
+          <summary>"What is the difference between logical, linear, and physical addresses?"</summary>
+          <div class="a"><p><strong>Logical</strong> = <code>segment : offset</code> as written in the instruction. Segmentation turns it into a <strong>linear</strong> (a.k.a. virtual) address by adding the segment base — in a flat model this is a no-op, so linear = offset. Paging then turns the linear address into a <strong>physical</strong> one via the page tables. With flat segmentation + paging (every modern OS), only the linear→physical step matters.</p></div>
+        </details>
+      </section>
+
+      <section class="part" id="p11">
+        <div class="part-head"><span class="part-num">11</span><h2>Physical memory management</h2></div>
+        <p class="standfirst">Handing out and reclaiming 4-KiB frames of real RAM — the layer paging and both heaps sit on.</p>
+
+        <h3>The problem</h3>
+        <p>Paging needs frames for page tables. The heaps need frames for their backing store. Something has to track which physical 4-KiB frames are free. That is the <strong>physical memory manager</strong> (frame allocator).</p>
+
+        <h3>How much RAM is there?</h3>
+        <p>You don't guess — the Multiboot info struct tells you. <code>mbi-&gt;mem_upper</code> is KiB of contiguous RAM above 1&nbsp;MiB; the full <code>mmap</code> array gives every region with a type (available / reserved / ACPI). KFS_3 uses <code>mem_upper</code> for simplicity and caps its pool at the 64-MiB identity boundary.</p>
+
+        <h3>The bitmap allocator</h3>
+        <p>The simplest workable design: one <strong>bit per frame</strong>, 0 = free, 1 = used. 48&nbsp;MiB of pool ÷ 4&nbsp;KiB = 12&nbsp;288 frames = 1&nbsp;536 bytes of bitmap, which lives in <code>.bss</code>.</p>
+        <pre><code>uint32_t pmm_alloc_frame(void) {
+    for (i = 0; i &lt; total_frames; i++)
+        if (!bm_test(i)) { bm_set(i); return POOL_START + i*0x1000; }
+    return 0;                       <span class="cmt">// out of memory</span>
+}
+void pmm_free_frame(uint32_t phys) { bm_clear((phys - POOL_START) / 0x1000); }</code></pre>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Allocator</th><th>Trade-off</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Bitmap</strong> (used here)</td><td>Tiny metadata, dead simple, allocation is O(n) scan. Fine for a hobby kernel.</td></tr>
+              <tr><td>Free list / stack of frames</td><td>O(1) alloc/free, but can't easily find <em>contiguous</em> runs and the links cost a pointer per free frame (often stored in the free frame itself).</td></tr>
+              <tr><td>Buddy allocator</td><td>O(log n), naturally handles contiguous power-of-two blocks, some internal fragmentation. What Linux actually uses.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>KFS_3's physical map</h3>
+        <pre><code>0x00000000 – 0x00200000   low memory, BIOS, VGA        (identity)
+0x00200000 – ~0x00600000  kernel image + page tables  (identity)
+0x00800000 – 0x01000000   kernel heap  (kmalloc/kbrk)  (identity)
+0x01000000 – 0x04000000   PMM frame pool              (identity)
+0x40000000 – 0x50000000   virtual heap (vmalloc/vbrk)  (demand-mapped)</code></pre>
+        <p>The pool starts at 16&nbsp;MiB so it can never collide with the kernel or the kernel heap, and ends at 64&nbsp;MiB so every frame it returns is inside the identity map and therefore directly writable as a page table.</p>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"You call <code>pmm_alloc_frame()</code> and get 0x2000. What can and can't you do with that pointer?"</strong> — 0x2000 is a <em>physical</em> address. You can only dereference it directly if it's covered by the current page tables. In KFS_3 the whole low 64&nbsp;MiB is identity-mapped, so <code>*(uint32_t*)0x2000</code> works. In a higher-half kernel you'd have to map it somewhere first (or use a permanent physical-memory window) before touching it.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p12">
+        <div class="part-head"><span class="part-num">12</span><h2>The kernel heap</h2></div>
+        <p class="standfirst"><code>kmalloc</code>, <code>kfree</code>, <code>ksize</code>, <code>kbrk</code> — a first-fit free-list allocator over an identity-mapped region.</p>
+
+        <h3>What a heap allocator is</h3>
+        <p>The PMM hands out whole 4-KiB frames. A heap sits on top and hands out <em>arbitrary-sized</em> chunks from within a larger region, tracking which bytes are in use. The classic Unix model splits this in two layers:</p>
+        <ul>
+          <li><code>brk</code> / <code>sbrk</code> — moves the single boundary ("the break") between the heap and unused address space. Coarse: grow or shrink the whole heap.</li>
+          <li><code>malloc</code> / <code>free</code> — sub-divide the space below the break into allocations, reusing freed holes.</li>
+        </ul>
+
+        <h3><code>kbrk</code></h3>
+        <p>KFS_3's kernel heap occupies a fixed identity-mapped window (8–16&nbsp;MiB). Because it's identity-mapped, the physical frames are already there — <code>kbrk</code> just moves a pointer and bounds-checks against the 16-MiB limit:</p>
+        <pre><code>void *kbrk(int32_t delta) {
+    uint8_t *old = heap_end;
+    if (heap_end + delta &gt; heap_limit || heap_end + delta &lt; heap_start)
+        return (void*)-1;
+    heap_end += delta;
+    return old;                <span class="cmt">// sbrk semantics: returns the OLD break</span>
+}</code></pre>
+
+        <h3>The free list</h3>
+        <p>Every allocation is preceded by a header. Blocks form a doubly-linked list in address order:</p>
+        <pre><code>typedef struct block {
+    uint32_t magic;           <span class="cmt">// 0xB10CB10C — detects corruption &amp; bad frees</span>
+    uint32_t size;            <span class="cmt">// payload bytes</span>
+    uint32_t free;
+    struct block *next, *prev;
+} block_t;</code></pre>
+        <p><strong>kmalloc:</strong> walk the list for the first free block with <code>size ≥ request</code> (<em>first-fit</em>). If it's much bigger, <strong>split</strong> it — carve the tail into a new free block. If nothing fits, <code>kbrk</code> more space and append a block.</p>
+        <p><strong>kfree:</strong> check the magic, mark free, then <strong>coalesce</strong> — if the next and/or previous block is also free, merge them into one so the space is reusable for a large future request. If the merged block is the last one, hand the memory back with a negative <code>kbrk</code>.</p>
+        <p><strong>ksize:</strong> step back one header from the pointer, verify the magic, return <code>size</code>.</p>
+
+        <figure>
+          <svg viewBox="0 0 660 118" role="img" aria-labelledby="heap-t">
+            <title id="heap-t">Free list before and after freeing the middle block</title>
+            <g class="sans-svg">
+              <text class="svg-faint" x="8" y="16">after kfree(B), B is coalesced with the free block to its right</text>
+              <g transform="translate(8,26)">
+                <rect class="svg-panel svg-rule" x="0" y="0" width="90" height="34" stroke-width="1"/><text class="svg-ink" x="45" y="16" text-anchor="middle">A</text><text class="svg-faint" x="45" y="29" text-anchor="middle">used</text>
+                <rect class="svg-danger" x="90" y="0" width="120" height="34" stroke-width="1" fill="none" stroke="currentColor"/><text class="svg-danger" x="150" y="16" text-anchor="middle">B</text><text class="svg-faint" x="150" y="29" text-anchor="middle">used → free</text>
+                <rect class="svg-panel svg-rule" x="210" y="0" width="80" height="34" stroke-width="1" stroke-dasharray="3 2"/><text class="svg-faint" x="250" y="16" text-anchor="middle">free</text>
+                <rect class="svg-panel svg-rule" x="290" y="0" width="90" height="34" stroke-width="1"/><text class="svg-ink" x="335" y="16" text-anchor="middle">C</text><text class="svg-faint" x="335" y="29" text-anchor="middle">used</text>
+              </g>
+              <text class="svg-accent" x="8" y="86">↓</text>
+              <g transform="translate(8,90)">
+                <rect class="svg-panel svg-rule" x="0" y="0" width="90" height="24" stroke-width="1"/><text class="svg-ink" x="45" y="16" text-anchor="middle">A</text>
+                <rect class="svg-accent" x="90" y="0" width="200" height="24" stroke-width="1" fill="none" stroke="currentColor"/><text class="svg-accent" x="190" y="16" text-anchor="middle">one merged free block</text>
+                <rect class="svg-panel svg-rule" x="290" y="0" width="90" height="24" stroke-width="1"/><text class="svg-ink" x="335" y="16" text-anchor="middle">C</text>
+              </g>
+            </g>
+          </svg>
+          <figcaption>Without coalescing, repeated alloc/free of mixed sizes shreds the heap into unusable slivers.</figcaption>
+        </figure>
+
+        <h3>Fragmentation</h3>
+        <ul>
+          <li><strong>Internal</strong> — you asked for 40 bytes, the allocator rounded to 48 (8-byte alignment) plus a 20-byte header. The waste is inside the allocation.</li>
+          <li><strong>External</strong> — enough total free space for a request, but no single hole big enough. Coalescing fights this; so do best-fit and segregated size classes.</li>
+        </ul>
+
+        <div class="callout note">
+          <span class="tag">Beyond first-fit</span>
+          <p>Production allocators use <strong>segregated free lists / bins</strong> (glibc, jemalloc), a <strong>slab allocator</strong> for fixed-size kernel objects (Linux <code>kmem_cache</code>), or a <strong>buddy</strong> system. All trade metadata and complexity for lower fragmentation and O(1) common paths. First-fit + coalescing is the honest starting point that shows you understand the problem.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"How does <code>free</code> know how big the block was?"</strong> — It doesn't get told. <code>malloc</code> stored the size in a header immediately before the returned pointer; <code>free</code> and <code>ksize</code> subtract the header size from the pointer and read it back. The magic value in that header is also how you catch a double-free or a write that ran off the end of the previous allocation.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p13">
+        <div class="part-head"><span class="part-num">13</span><h2>The virtual heap</h2></div>
+        <p class="standfirst"><code>vmalloc</code> and friends — the same allocator, but every page is backed on demand by a physically scattered frame.</p>
+
+        <h3>The one difference that matters</h3>
+        <p>The kernel heap lives in identity-mapped memory: virtually contiguous <em>and</em> physically contiguous, frames pre-supplied. The <strong>virtual heap</strong> lives in a region (1&nbsp;GiB–1.25&nbsp;GiB) that is <em>not</em> mapped at boot. Growing it means, for each new page:</p>
+        <pre><code>uint32_t frame = pmm_alloc_frame();          <span class="cmt">// any free physical frame</span>
+map_page(page, frame, PAGE_PRESENT | PAGE_RW);  <span class="cmt">// stitch it into the address space</span>
+memset((void*)page, 0, 0x1000);</code></pre>
+        <p>Consecutive virtual pages can (and usually do) get non-consecutive physical frames. Shrinking reverses it: <code>unmap_page</code> then <code>pmm_free_frame</code>. Above that, the identical first-fit / split / coalesce allocator runs — the code is literally shared, parameterised by a "grow" function.</p>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>vmalloc 9000</code> in the shell returns something like <code>0x40000018</code> with <code>vsize = 9000</code> and prints its physical frame — e.g. <code>0x01000018</code> — proving the virtual address and the physical frame are unrelated. It spans three pages, each independently mapped.</p>
+        </div>
+
+        <h3>The Linux parallel</h3>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th></th><th><code>kmalloc</code></th><th><code>vmalloc</code></th></tr></thead>
+            <tbody>
+              <tr><td>Virtual</td><td>contiguous</td><td>contiguous</td></tr>
+              <tr><td>Physical</td><td><strong>contiguous</strong></td><td>scattered</td></tr>
+              <tr><td>Max size</td><td>limited (needs a contiguous run)</td><td>large</td></tr>
+              <tr><td>Speed</td><td>faster (no per-page mapping)</td><td>slower (page-table edits + TLB)</td></tr>
+              <tr><td>Use when</td><td>small; or hardware/DMA needs physical contiguity</td><td>big buffers where only the CPU view matters</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"When would you use <code>vmalloc</code> over <code>kmalloc</code>?"</strong> — For a large allocation (say a 2&nbsp;MB buffer) where you only need the CPU to see it as one contiguous range. <code>kmalloc</code> would need 512 physically contiguous free frames, which fragmentation may make impossible; <code>vmalloc</code> stitches 512 arbitrary frames into a contiguous virtual range. You avoid <code>vmalloc</code> for anything a device DMAs into, because the device bypasses the MMU and sees the scattered physical frames.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p14">
+        <div class="part-head"><span class="part-num">14</span><h2>Kernel panics</h2></div>
+        <p class="standfirst">There is no process to kill and no shell to return to — so what do you do when something is unrecoverable?</p>
+
+        <h3>Fatal vs recoverable</h3>
+        <p>The subject is explicit that not every panic is fatal. The distinction:</p>
+        <ul>
+          <li><strong>Recoverable</strong> — the kernel's invariants are intact and execution can continue. A breakpoint (<code>#BP</code>, <code>int3</code>) or debug exception (<code>#DB</code>) is informational. KFS_2/3 print a yellow warning and <code>iret</code> back.</li>
+          <li><strong>Fatal</strong> — an invariant is broken and continuing would corrupt state or loop forever: a page fault in the kernel, a #GP, a failed assertion, out-of-memory where the caller can't cope. Print everything useful, then stop the machine.</li>
+        </ul>
+
+        <h3>What "stop the machine" means</h3>
+        <pre><code>__asm__ volatile ("cli");     <span class="cmt">// mask interrupts — nothing else runs</span>
+for (;;) __asm__ volatile ("hlt");  <span class="cmt">// halt until an interrupt… which can't come</span></code></pre>
+        <p><code>hlt</code> alone would resume on the next interrupt; <code>cli</code> first makes it permanent. The loop guards against a non-maskable interrupt nudging the CPU past a single <code>hlt</code>.</p>
+
+        <h3>What to dump</h3>
+        <p>A panic screen is the only debugger you have on real hardware. KFS's <code>panic_from_regs()</code> prints, from the <code>struct regs</code> the ISR captured: the vector and its name, the error code, every GP register, the segment selectors, <code>eflags</code>, and — critically — <strong><code>eip</code></strong> (where it died) and <strong><code>CR2</code></strong> (for a page fault, what address it touched). With <code>eip</code> and the linker map you can find the exact line.</p>
+
+        <div class="callout code-ref">
+          <span class="tag">In our code</span>
+          <p><code>panic(fmt, …)</code> takes printf-style args for assertion-style failures; <code>panic_nonfatal(fmt, …)</code> is the recoverable yellow-banner path; <code>panic_from_regs(r)</code> is what the fault handler calls for CPU exceptions. All three set a distinctive screen colour so a panic is unmistakable.</p>
+        </div>
+
+        <div class="callout interview">
+          <span class="tag">Interview</span>
+          <p><strong>"Your kernel panics with <code>eip = 0x00102f4a</code>. How do you find the bug?"</strong> — Run <code>objdump -d kernel.bin</code> (or check <code>kernel.map</code>) and find which function contains 0x102f4a. Combined with the faulting instruction, the register dump, and CR2 if it's a page fault, that usually pins it to a line. On QEMU you'd also attach GDB (<code>-s -S</code>) and set a breakpoint there for a live look.</p>
+        </div>
+      </section>
+
+      <section class="part" id="p15">
+        <div class="part-head"><span class="part-num">15</span><h2>Question bank</h2></div>
+        <p class="standfirst">Rapid-fire, grouped by area. Say the answer out loud before opening the panel.</p>
+
+        <h3>Toolchain &amp; build</h3>
+        <details class="qa"><summary>What does <code>-ffreestanding</code> actually change?</summary><div class="a"><p>It tells the compiler the program runs without a hosted C environment: <code>main</code> loses its special status, the standard library may be absent, and only <code>&lt;stdint.h&gt; &lt;stddef.h&gt; &lt;stdbool.h&gt; &lt;stdarg.h&gt; &lt;float.h&gt; &lt;limits.h&gt; &lt;iso646.h&gt;</code> are guaranteed. It does <em>not</em> stop gcc emitting calls to <code>memcpy</code>/<code>memset</code>/<code>memmove</code>/<code>memcmp</code>, which is why you still implement those four.</p></div></details>
+        <details class="qa"><summary>Why does the link line end in <code>-lgcc</code> if you're <code>-nostdlib</code>?</summary><div class="a"><p><code>libgcc</code> is compiler runtime support, not an OS library: 64-bit divide/modulo helpers (<code>__udivdi3</code>, <code>__moddi3</code>), soft-float, <code>__builtin</code> fallbacks. 32-bit x86 has no <code>div</code> for 64-bit operands, so <code>uint64_t / uint64_t</code> becomes a call into libgcc. It's allowed because it has no OS dependency.</p></div></details>
+        <details class="qa"><summary>Why can't you use the host's linker script?</summary><div class="a"><p>It links a hosted executable: entry at <code>_start</code> from crt0, load address in the normal user range, an <code>INTERP</code> segment naming the dynamic loader, and it discards or misplaces custom sections like <code>.multiboot</code>. You need a fixed load address (2&nbsp;MiB), no interpreter, and <code>.multiboot</code> forced into the first 8&nbsp;KiB — so you write your own.</p></div></details>
+
+        <h3>Boot</h3>
+        <details class="qa"><summary>What are the three numbers in the Multiboot header?</summary><div class="a"><p>Magic <code>0x1BADB002</code> (lets the loader locate the header by scanning), flags (request page-aligned modules, a memory map, video info…), and a checksum such that <code>magic + flags + checksum</code> overflows to 0 in 32 bits. The header must be 4-byte aligned within the first 8&nbsp;KiB of the file.</p></div></details>
+        <details class="qa"><summary>What state is the machine in when your entry point runs?</summary><div class="a"><p>32-bit protected mode, paging off, interrupts off, A20 enabled, a temporary GDT loaded, <code>EAX = 0x2BADB002</code>, <code>EBX</code> = physical pointer to the multiboot info struct, <code>ESP</code> undefined. First job: load your own stack pointer.</p></div></details>
+        <details class="qa"><summary>Real mode vs protected mode in one line each.</summary><div class="a"><p>Real mode: 16-bit, 1&nbsp;MiB, <code>seg×16+off</code> addressing, no protection — boot compatibility. Protected mode: 32-bit, 4&nbsp;GiB, selector→descriptor segmentation with privilege checks, optional paging — where the OS actually lives.</p></div></details>
+
+        <h3>GDT / segmentation</h3>
+        <details class="qa"><summary>Why is the "limit" field always size − 1?</summary><div class="a"><p>So that a limit of all-ones describes a segment covering the entire address space rather than a zero-length one, and so the maximum representable size uses every bit. The GDTR, IDTR, and each descriptor all use this "one less than the byte count" convention.</p></div></details>
+        <details class="qa"><summary>How do you reload CS, and why is it special?</summary><div class="a"><p>You can't <code>mov</code> into <code>CS</code>. Only a far jump, far call, far return, or <code>iret</code> changes it — because changing CS means changing the privilege level and code descriptor atomically with the instruction pointer. After <code>lgdt</code> you do <code>jmp 0x08:label</code> to start executing through the new code segment.</p></div></details>
+        <details class="qa"><summary>CPL, DPL, RPL?</summary><div class="a"><p>CPL = your current ring (low 2 bits of CS). DPL = the ring stored in a descriptor. RPL = low 2 bits of a selector value, a way to weaken a request on purpose. A data access is allowed when <code>max(CPL, RPL) ≤ DPL</code>.</p></div></details>
+
+        <h3>Interrupts</h3>
+        <details class="qa"><summary>Exception vs interrupt vs trap?</summary><div class="a"><p><em>Fault</em>: reported before the faulting instruction, which can be restarted (page fault). <em>Trap</em>: reported after (breakpoint, <code>int3</code>). <em>Abort</em>: severe, no reliable restart (double fault, machine check). "Interrupt" loosely means any of these plus asynchronous device IRQs; all go through the IDT.</p></div></details>
+        <details class="qa"><summary>Which exception vectors push an error code?</summary><div class="a"><p>8 (#DF), 10 (#TS), 11 (#NP), 12 (#SS), 13 (#GP), 14 (#PF), 17 (#AC), 21 (#CP). Your stubs push a dummy 0 for all the others so the stack frame is uniform.</p></div></details>
+        <details class="qa"><summary>What does <code>iret</code> pop?</summary><div class="a"><p><code>eip</code>, <code>cs</code>, <code>eflags</code> — and additionally <code>esp</code>, <code>ss</code> if the interrupt caused a privilege-level change (user→kernel). Your stub must have already restored GP + segment registers and removed its own pushes.</p></div></details>
+
+        <h3>PIC / IRQ</h3>
+        <details class="qa"><summary>Master/slave wiring?</summary><div class="a"><p>Two 8259s. Master owns IRQ 0–7 and drives the CPU pin; slave owns IRQ 8–15 and feeds the master's IRQ 2. So any IRQ ≥ 8 needs an EOI to <em>both</em> chips.</p></div></details>
+        <details class="qa"><summary>Where does the PIT frequency 1193182 come from?</summary><div class="a"><p>It's the legacy 14.31818&nbsp;MHz NTSC colorburst crystal divided by 12 — a historical accident now frozen into every PC. You divide it further with a 16-bit reload value to pick your tick rate.</p></div></details>
+
+        <h3>Paging / memory</h3>
+        <details class="qa"><summary>What's in CR3 — a virtual or physical address?</summary><div class="a"><p>Physical. The MMU can't use a virtual one — resolving it would require the very tables it's trying to find. Same for the frame numbers inside every PDE/PTE: all physical.</p></div></details>
+        <details class="qa"><summary>You changed a PTE and the old mapping still works. Why?</summary><div class="a"><p>The TLB cached the old translation. Issue <code>invlpg</code> for that page, or reload <code>CR3</code> to flush everything non-global.</p></div></details>
+        <details class="qa"><summary>What are the ways to handle a page fault?</summary><div class="a"><p>Map a new zero page (lazy allocation / stack growth), copy a shared page and make it writable (copy-on-write), read a page back from swap/disk, satisfy a memory-mapped file, or — if the access is genuinely illegal — deliver SIGSEGV / kill the process. In a kernel with no processes, it's a panic.</p></div></details>
+        <details class="qa"><summary>kmalloc vs vmalloc, physically?</summary><div class="a"><p>kmalloc: contiguous in both virtual and physical space. vmalloc: contiguous virtually, arbitrary physically — it maps scattered frames into a contiguous virtual window. DMA-capable buffers must be kmalloc (or from a DMA pool) because devices see physical addresses.</p></div></details>
+        <details class="qa"><summary>Internal vs external fragmentation?</summary><div class="a"><p>Internal: rounding/headers waste space <em>inside</em> an allocation. External: total free ≥ request but no single contiguous hole is big enough. Coalescing and size-class allocators target external; tighter rounding targets internal.</p></div></details>
+      </section>
+
+      <section class="part" id="p16">
+        <div class="part-head"><span class="part-num">16</span><h2>Quick reference</h2></div>
+        <p class="standfirst">The tables worth memorising.</p>
+
+        <h3>x86 I/O ports used</h3>
+        <div class="tablewrap"><table class="bits"><thead><tr><th>Port</th><th>Device</th></tr></thead><tbody>
+          <tr><td>0x20 / 0x21</td><td>PIC master command / data</td></tr>
+          <tr><td>0xA0 / 0xA1</td><td>PIC slave command / data</td></tr>
+          <tr><td>0x20 (write)</td><td>EOI command byte</td></tr>
+          <tr><td>0x40 / 0x43</td><td>PIT channel 0 / mode register</td></tr>
+          <tr><td>0x60 / 0x64</td><td>Keyboard data / status+command</td></tr>
+          <tr><td>0x70 / 0x71</td><td>CMOS/RTC index / data</td></tr>
+          <tr><td>0x3D4 / 0x3D5</td><td>VGA CRTC index / data (cursor)</td></tr>
+          <tr><td>0x64 ← 0xFE</td><td>keyboard-controller CPU reset (reboot)</td></tr>
+        </tbody></table></div>
+
+        <h3>First 32 IDT vectors</h3>
+        <div class="tablewrap"><table class="bits"><thead><tr><th>#</th><th>Mnemonic</th><th>Cause</th><th>err?</th></tr></thead><tbody>
+          <tr><td>0</td><td>#DE</td><td>divide by zero</td><td>–</td></tr>
+          <tr><td>1</td><td>#DB</td><td>debug</td><td>–</td></tr>
+          <tr><td>3</td><td>#BP</td><td>breakpoint (<code>int3</code>)</td><td>–</td></tr>
+          <tr><td>6</td><td>#UD</td><td>invalid opcode</td><td>–</td></tr>
+          <tr><td>8</td><td>#DF</td><td>double fault</td><td>0</td></tr>
+          <tr><td>13</td><td>#GP</td><td>general protection</td><td>yes</td></tr>
+          <tr><td>14</td><td>#PF</td><td>page fault (addr in CR2)</td><td>yes</td></tr>
+          <tr><td>32–47</td><td>IRQ 0–15</td><td>remapped hardware</td><td>–</td></tr>
+        </tbody></table></div>
+
+        <h3>Selectors in this kernel</h3>
+        <div class="tablewrap"><table class="bits"><thead><tr><th>Selector</th><th>Points at</th></tr></thead><tbody>
+          <tr><td>0x00</td><td>null descriptor</td></tr>
+          <tr><td>0x08</td><td>kernel code (ring 0)</td></tr>
+          <tr><td>0x10</td><td>kernel data / stack (ring 0)</td></tr>
+          <tr><td>0x1B</td><td>user code (0x18 | RPL 3)</td></tr>
+          <tr><td>0x23</td><td>user data (0x20 | RPL 3)</td></tr>
+        </tbody></table></div>
+
+        <h3>Address-bit arithmetic (4-KiB pages)</h3>
+        <div class="tablewrap"><table class="bits"><thead><tr><th>Quantity</th><th>Expression</th></tr></thead><tbody>
+          <tr><td>page directory index</td><td><code>addr &gt;&gt; 22</code></td></tr>
+          <tr><td>page table index</td><td><code>(addr &gt;&gt; 12) &amp; 0x3FF</code></td></tr>
+          <tr><td>offset in page</td><td><code>addr &amp; 0xFFF</code></td></tr>
+          <tr><td>frame from PTE</td><td><code>pte &amp; 0xFFFFF000</code></td></tr>
+          <tr><td>one table covers</td><td>1024 × 4 KiB = 4 MiB</td></tr>
+        </tbody></table></div>
+
+        <h3>The magic-instruction checklist</h3>
+        <div class="tablewrap"><table><thead><tr><th>To start using…</th><th>Do</th></tr></thead><tbody>
+          <tr><td>your GDT</td><td><code>lgdt</code> + far jump to reload CS + reload data segs</td></tr>
+          <tr><td>your IDT</td><td><code>lidt</code></td></tr>
+          <tr><td>hardware IRQs</td><td>remap PIC (ICW1–4), unmask, <code>sti</code></td></tr>
+          <tr><td>paging</td><td><code>mov cr3</code>, then <code>or cr0, 0x80000000</code></td></tr>
+          <tr><td>flush one TLB entry</td><td><code>invlpg (addr)</code></td></tr>
+        </tbody></table></div>
+      </section>
+
+      <footer class="footer">
+        <p>Companion to <code>github.com/BEAJousama/kfs_2</code> and <code>kfs_3</code>. Concepts follow the OSDev wiki and the Intel SDM Vol.&nbsp;3; the memory chapters follow the structure of the KFS_3 subject.</p>
+        <p>Written as revision material — verify anything load-bearing against the SDM before you quote it in an exam.</p>
+      </footer>
+    </div>
+  </main>
+</div>
+<a href="#top" class="backlink">↑ Contents</a>
+
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+  var map = {};
+  links.forEach(function (a) {
+    var id = a.getAttribute('href').slice(1);
+    var el = document.getElementById(id);
+    if (el) map[id] = a;
+  });
+  var sections = Object.keys(map).map(function (id) { return document.getElementById(id); });
+
+  function onScroll() {
+    var y = window.scrollY + 120;
+    var current = sections[0];
+    for (var i = 0; i < sections.length; i++) {
+      if (sections[i].offsetTop <= y) current = sections[i];
+    }
+    links.forEach(function (a) { a.classList.remove('active'); });
+    if (current && map[current.id]) {
+      map[current.id].classList.add('active');
+    }
+  }
+  var ticking = false;
+  window.addEventListener('scroll', function () {
+    if (!ticking) {
+      window.requestAnimationFrame(function () { onScroll(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+  onScroll();
+})();
+</script>
+
