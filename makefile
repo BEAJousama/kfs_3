@@ -50,12 +50,20 @@ $(ISO_IMAGE): $(KERNEL_BIN)
 	cp boot/grub/grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -d /usr/lib/grub/i386-pc -o $@ isodir
 
+QEMU      ?= qemu-system-i386
+QEMUFLAGS ?= -m 512 -no-reboot
+
+# graphical window (host with a display)
 run: $(ISO_IMAGE)
-	qemu-system-i386 -cdrom $(ISO_IMAGE)
+	$(QEMU) -cdrom $(ISO_IMAGE) $(QEMUFLAGS)
+
+# text mode inside the current terminal (headless VM / SSH); quit with Alt-2 then `quit`
+run-curses: $(ISO_IMAGE)
+	$(QEMU) -cdrom $(ISO_IMAGE) $(QEMUFLAGS) -display curses
 
 clean:
 	rm -rf build isodir
 
 re: clean all
 
-.PHONY: all run clean re
+.PHONY: all run run-curses clean re
