@@ -19,16 +19,19 @@ Vagrant.configure("2") do |config|
   # ".." is the folder that holds both kfs_2/ and kfs3/
   config.vm.synced_folder "..", "/home/vagrant/projects"
 
+  # 1 GiB is enough to build the kernels and run QEMU (-m 512) inside.
+  # On a RAM-starved host, drop to 768; the VM boots but the host OOM
+  # killer will terminate VirtualBox if free memory dips too low.
   config.vm.provider "virtualbox" do |vb|
     vb.gui    = false
     vb.name   = "kfs-build"
-    vb.memory = 2048
+    vb.memory = 1024
     vb.cpus   = 2
   end
 
   # Alternative: KVM  ->  vagrant up --provider=libvirt
   config.vm.provider "libvirt" do |lv|
-    lv.memory = 2048
+    lv.memory = 1024
     lv.cpus   = 2
   end
 
